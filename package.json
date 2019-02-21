@@ -1,0 +1,19 @@
+{
+  "name": "@wranggle/rpc",
+  "author": "Jeff Ferber",
+  "scripts": {
+    "test": "jest"
+  },
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/jest": "^24.0.6",
+    "@types/node": "^11.9.4",
+    "jest": "^24.1.0",
+    "lerna": "^3.13.0",
+    "typescript": "^3.3.3"
+  },
+  "license": "Apache-2.0"
+}
