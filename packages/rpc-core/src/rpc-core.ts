@@ -4,9 +4,7 @@ import FlightReceipt from "./flight-receipt";
 
 export interface IRpcOpts {
   channel: RpcChannel;
-  transport?: ITransport;
-  messageSender?: IMessageSender;
-  messageReceiver?: IMessageReceiver;
+  transport?: IRpcTransport;
 
   allRequestOpts?: IRequestOpts;
   allMethodHandlerOpts?: IMethodHandlerOpts;
@@ -28,14 +26,6 @@ const DefaultRpcOpts = {
   // later: option to change from bi-directional (both initiating and responding to requests) to request-only or respond-only
 };
 
-export interface IMessageSender {
-  // todo: option for sending heartbeat
-  // todo:
-}
-
-export interface IMessageReceiver {
-  // todo: option for heartbeat
-}
 
 export interface IRpcEndpointData {
 
@@ -44,8 +34,11 @@ export interface IRpcEndpointData {
 /**
  * Shortcut to setting up both messageSender and messageReceiver
  */
-export interface ITransport {
-  // todo: ITransport
+export interface IRpcTransport {
+  sendMessage(payload: IRpcPayload): void;
+  listen(onMessage: (payload: IRpcPayload) => void): void;
+  stopTransport(): void;
+  // todo: reportDisconnect? connection status? decide where to keep features like heartbeat
 }
 
 type MethodName = string;
@@ -55,17 +48,20 @@ type RpcChannel = string;
 interface IDict<T> {
   [ key: string ]: T;
 }
-interface IMethodByName {
-  [ methodName: string]: (...args: any[]) => Promise<any> | void;
-}
 
 export interface IRequestHandlerObject {
   [ methodName: string]: (...args: any[]) => Promise<any> | void | FlightReceipt;
 }
 
-export interface IRequestMakerObject extends IMethodByName {
-}
+// export interface IRequestMakerObject extends IMethodByName {
+// }
+// interface IMethodByName {
+//   [ methodName: string]: (...args: any[]) => Promise<any> | void;
+// }
 
+export interface IRpcPayload {
+  // todo
+}
 
 interface IMethodHandlerOpts {
   /**
@@ -89,8 +85,6 @@ interface IMethodHandlerOpts {
 
 export default class Rpc<T> {
   private _rootOpts: IRpcOpts;
-  private messageSender: IMessageSender;
-  private messageReceiver: IMessageReceiver;
   private _pendingRequests = <IDict<RemoteRequest>>{};
   private _requestOptsByMethod = <IDict<IRequestOpts>>{};
   private logger = <ILogger>console;

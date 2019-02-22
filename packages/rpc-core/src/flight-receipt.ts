@@ -12,7 +12,6 @@ export interface RemotePromise<T> extends Promise<T> {
 
 export default class FlightReceipt {
   private responseResolver: IResponseResolver;
-  [Symbol.toStringTag]: "Promise";
 
   constructor(responseResolver: IResponseResolver) {
     this.responseResolver = responseResolver;
