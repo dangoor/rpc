@@ -1,9 +1,11 @@
-import {EventEmitter} from "events";
-import {IRpcPayload, IRpcTransport} from "./rpc-core";
+import {EventEmitter} from "events"; 
+import {IRpcTransport} from "./rpc-core";
+import {IRequestPayload, IResponsePayload} from "./router";
 
 
 export interface ILocalObserverTransportOpts {
   messageEventName: string;
+  // todo: option to preparse/filter
 }
 const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'
@@ -20,17 +22,17 @@ export default class LocalObserverTransport implements IRpcTransport {
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;
-  private eventListener;
+  private eventListener?: (payload: IRequestPayload | IResponsePayload) => void;
 
   constructor(eventEmitter: EventEmitter, opts=<Partial<ILocalObserverTransportOpts>>{}) {
     this.observer = eventEmitter;
     opts = Object.assign({}, DefaultOpts, opts);
-    this.eventName = opts.messageEventName;
+    this.eventName = opts.messageEventName || DefaultOpts.messageEventName;
   }
 
-  listen(handler: (payload: IRpcPayload) => void): void {
+  listen(handler: (payload: IRequestPayload | IResponsePayload) => void): void {
     this._removeExistingListener();
-    this.eventListener = (payload: IRpcPayload) => {
+    this.eventListener = (payload: IRequestPayload | IResponsePayload) => {
       if (!this._isStopped) {
         handler(payload);
       }
@@ -38,7 +40,7 @@ export default class LocalObserverTransport implements IRpcTransport {
     this.observer.on(this.eventName, this.eventListener);
   }
 
-  sendMessage(payload: IRpcPayload): void {
+  sendMessage(payload: IRequestPayload | IResponsePayload): void {
     if (!this._isStopped) {
       this.observer.emit(this.eventName, payload);
     }

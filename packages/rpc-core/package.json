@@ -7,8 +7,6 @@
     "tsc": "tsc",
     "test": "jest"
   },
-  "homepage": "https://github.com/wranggle/rpc#readme",
-  "license": "Apache-2.0",
   "main": "lib/rpc-core.js",
   "directories": {
     "lib": "lib",
@@ -20,14 +18,21 @@
   "publishConfig": {
     "access": "public"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/wranggle/rpc.git"
+  "dependencies": {
+    "fast-safe-stringify": "^2.0.6",
+    "kvid": "^1.2.4"
   },
+  "devDependencies": {
+    "@types/node": "^11.9.5",
+    "ts-jest": "^24.0.0"
+  },
+  "homepage": "https://github.com/wranggle/rpc#readme",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/wranggle/rpc/issues"
   },
-  "devDependencies": {
-    "ts-jest": "^24.0.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wranggle/rpc.git"
   }
 }

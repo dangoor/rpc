@@ -1,4 +1,6 @@
-import FlightReceipt from "./flight-receipt";
+import FlightReceipt, {RemotePromise} from "./flight-receipt";
+import {IRequestPayload} from "./router";
+const kvid = require('kvid');
 
 
 export interface IRequestOpts {
@@ -23,20 +25,23 @@ const DefaultRequestOpts = {
 
 
 export default class RemoteRequest {
-  private readonly _id: string;
-  private requestOpts: IRequestOpts;
-  // private readonly _remotePromise: RemotePromise;
-  private readonly nodejsCallback?: (...args: any[]) => void;
-  private responseResolver: IResponseResolver;
-  private _receipt: FlightReceipt;
+  private requestOpts!: IRequestOpts;
+  private _receipt?: FlightReceipt;
+  readonly nodejsCallback?: (...args: any[]) => void;
+  readonly methodName: string;
+  readonly userArgs: any[];
+  readonly requestId: string;
+  private _payload?: IRequestPayload;
+
 
   constructor(methodName: string, userArgs: any[], requestOpts: IRequestOpts) {
-    this._id = 'todo123'; // todo: this.messageId = kvid(12);
     if (typeof userArgs[userArgs.length - 1] === 'function') {
       this.nodejsCallback = userArgs.pop();
     }
+    this.methodName = methodName;
+    this.userArgs = userArgs;
+    this.requestId = kvid(12);
     this.opts(Object.assign({}, DefaultRequestOpts, requestOpts));
-    this.responseResolver = this._initResponseResolver();
 
     this._initTimeout();
   }
@@ -49,41 +54,42 @@ export default class RemoteRequest {
     return !!this.requestOpts.rsvp;
   }
 
-  get messageId() {
-    return this._id;
+  buildPayload(endpointBaseData: Partial<IRequestPayload>): IRequestPayload {
+    const { requestId, methodName, userArgs } = this;
+    const payload = Object.assign(endpointBaseData, {
+      requestId, methodName, userArgs,
+      rsvp: this.isRsvp()
+    }) as IRequestPayload;
+    this._payload = payload;
+    return payload;
   }
 
-  flightReceipt(): Promise<any> | FlightReceipt {
-    if (!this._receipt) {
-      this._receipt = new FlightReceipt(this.responseResolver);
-    }
+  dataForPayload(): Partial<IRequestPayload> {
+    const { requestId, methodName, userArgs } = this;
+    return { requestId, methodName, userArgs, rsvp: this.isRsvp() };
+  }
+  
+  flightReceipt(): RemotePromise<any> | FlightReceipt {
+    const receipt = this._ensureFlightReceipt();
     if (this.nodejsCallback) {
-      return this._receipt;
+      return receipt;
     } else {
-      const promise = this.responseResolver.promise;
-      this._receipt.decoratePromise(promise);
-      return promise;
+      return receipt._decoratedPromise();
     }
   }
 
-  getResponseResolver(): IResponseResolver {
-    return this.responseResolver;
+  responseReceived(error: any, ...result: any[]): void {
+    this._ensureFlightReceipt()._remoteResponseReceived(error, ...result);
   }
 
-
-  _initResponseResolver(): IResponseResolver {
-    let promise, resolve, reject;
-    if (this.isRsvp()) {
-      promise = new Promise((res, rej) => {
-        resolve = res;
-        reject = rej;
-      });
-    } else {
-      promise = Promise.resolve();
-      resolve = () => {};
-      reject = () => {};
+  private _ensureFlightReceipt(): FlightReceipt {
+    if (!this._payload) {
+      throw new Error('Cannot get receipt before request data initialized');
     }
-    return { promise, resolve, reject };
+    if (!this._receipt) {
+      this._receipt = new FlightReceipt(this._payload, this.nodejsCallback);
+    }
+    return this._receipt;
   }
 
   private _initTimeout() {
@@ -95,9 +101,4 @@ export default class RemoteRequest {
   }
 }
 
-export interface IResponseResolver {
-  promise: Promise<any>;
-  resolve: (result?: any | PromiseLike<any>) => void;
-  reject: (reason?: any) => void;
-}
 
