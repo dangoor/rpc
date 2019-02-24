@@ -1,6 +1,7 @@
 import RemoteRequest, {IRequestOpts} from "./remote-request";
 import FlightReceipt from "./flight-receipt";
 import Router, {IRequestPayload, IResponsePayload} from "./router";
+import RequestHandler, {IDelegateOpts} from "./request-handler";
 const kvid = require('kvid');
 
 
@@ -45,9 +46,6 @@ const DefaultRpcOpts = {
 };
 
 
-export interface IRpcEndpointData {
-
-}
 
 /**
  * Shortcut to setting up both messageSender and messageReceiver
@@ -61,36 +59,6 @@ export interface IRpcTransport {
 
 type MethodName = string;
 
-
-interface IRequestHandlerDelegateHolder {
-  delegate: object;
-  opts: IDelegateOpts;
-}
-
-export interface IDelegateOpts {
-
-  /**
-   * Ignores inherited methods, using Object.hasOwnProperty check.
-   */
-  ignoreInherited?: boolean;
-
-  /**
-   * Ignores methods beginning with an underscore "_".
-   */
-  ignoreWithUnderscorePrefix?: boolean;
-
-  /**
-   * Custom filter to determine if it's ok to call a method on the delegate object. It is applied after the above
-   * built-in filters run/pass. When provided, the method runs if the filter returns `true`.
-   * @param delegate
-   * @param methodName
-   * @param methodArgs
-   */
-  shouldRun?: (delegate: object, methodName: string, ...methodArgs: any[]) => boolean;
-
-  context?: any;
-
-}
 
 
 // interface IMethodHandlerOpts {
@@ -116,15 +84,13 @@ export interface IDelegateOpts {
 export default class Rpc<T> {
   private _rootOpts = <IRpcOpts>{};
   private _requestOptsByMethod = <IDict<IRequestOpts>>{};
-  private _requestHandlerDelegateHolders=<IRequestHandlerDelegateHolder[]>[];
-  private _namedRequestHandlers = <IDict<(...args: any[]) => any>>{};
   // private logger = <ILogger>console;
 
   private readonly router: Router;
-
+  private readonly requestHandler = new RequestHandler();
 
   constructor(opts=<Partial<IRpcOpts>>{}) {
-    this.router = new Router({ onValidatedRequest: this._onValidatedRequest.bind(this) });
+    this.router = new Router({ onValidatedRequest: this.requestHandler.onValidatedRequest.bind(this.requestHandler) });
     this.opts(Object.assign({ senderId: kvid(8) }, DefaultRpcOpts, opts));
   }
 
@@ -133,29 +99,20 @@ export default class Rpc<T> {
    *
    */
   addRequestHandlerDelegate(delegate: any, opts?: IDelegateOpts) {
-    if (typeof delegate !== 'object') {
-      throw new Error('Expecting an object containing request handlers');
-    }
-    opts = Object.assign({
-      ignoreWithUnderscorePrefix: true,
-      ignoreInherited: true,
-      ignoreConstructor: true,
-      context: delegate,
-    }, opts);
-    this._requestHandlerDelegateHolders.push({ delegate, opts });
+    this.requestHandler.addRequestHandlerDelegate(delegate, opts);
   }
 
-  addRequestHandler(methodName: string, fn: (...args: any[]) => any): any {
-    this._namedRequestHandlers[methodName] = fn;
+  addRequestHandler(methodName: string, fn: (...args: any[]) => any): void {
+    this.requestHandler.addRequestHandler(methodName, fn);
   }
 
-  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>): any {
-    Object.keys(fnByMethodName).forEach((methodName) => this.addRequestHandler(methodName, fnByMethodName[methodName]));
+  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>): void {
+    this.requestHandler.addRequestHandlers(fnByMethodName);
   }
-
 
   opts(opts: Partial<IRpcOpts>): void {
     this.router.routerOpts(opts);
+    this.requestHandler.requestHandlerOpts(opts);
     Object.assign(this._rootOpts, opts);
   }
 
@@ -174,7 +131,7 @@ export default class Rpc<T> {
 
   makeRemoteRequest(methodName: string, userArgs: any[], requestOpts=<IRequestOpts>{}): Promise<any> | FlightReceipt {
     const rootOpts = this._rootOpts;
-    requestOpts = Object.assign({}, rootOpts.allRequestOpts, requestOpts); // todo: also this._requestOptsByMethod[methodName]
+    requestOpts = Object.assign({}, rootOpts.allRequestOpts, this._requestOptsByMethod[methodName], requestOpts);
     const req = new RemoteRequest(methodName, userArgs, requestOpts);
     return this.router.sendRemoteRequest(req);
   }
@@ -194,40 +151,11 @@ export default class Rpc<T> {
     return false;
   }
 
-  _onValidatedRequest(methodName: string, userArgs: any[]): Promise<any> {
-    let context;
-    let fn = this._namedRequestHandlers[methodName];
-    if (!fn) {
-      const holder = this._requestHandlerDelegateHolders.find((holder: IRequestHandlerDelegateHolder): boolean => {
-        const { delegate, opts } = holder;
-        if (methodName === 'constructor') {
-          return false;
-        }
-        if (typeof (delegate as any)[methodName] !== 'function') {
-          return false;
-        }
-        if (opts.ignoreWithUnderscorePrefix && methodName.charAt(0) === '_') {
-          return false;
-        }
-        if (opts.ignoreInherited && !(delegate.hasOwnProperty(methodName) || Object.getPrototypeOf(delegate).hasOwnProperty(methodName))) {
-          return false;
-        }
-        if (typeof opts.shouldRun === 'function' && opts.shouldRun(delegate, methodName, ...userArgs) !== true) {
-          return false;
-        }
-        return true;
-      });
-      if (holder) {
-        fn = (<any>holder.delegate)[methodName];
-        context = holder.opts.context;
-      }
-    }
-    if (fn) {
-      return Promise.resolve(fn.apply(context, userArgs))
-    } else {
-      return Promise.reject({ errorCode: 'MethodNotFound', methodName });
-    }
-  }
+}
+
+
+export interface IRpcEndpointData {
+
 }
 
 
