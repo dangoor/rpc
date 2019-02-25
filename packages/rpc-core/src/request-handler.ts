@@ -6,10 +6,12 @@ interface IRequestHandlerDelegateHolder {
   opts: IDelegateOpts;
 }
 
+const MissingMethodErrorCode = 'MethodNotFound'; // todo: move to constants or a custom error type
+
 export interface IDelegateOpts {
 
   /**
-   * Ignores inherited methods, using Object.hasOwnProperty check.
+   * Ignores inherited methods, using Object.hasOwnProperty checks.
    */
   ignoreInherited?: boolean;
 
@@ -31,6 +33,11 @@ export interface IDelegateOpts {
 
 }
 
+const DefaultDelegateOpts = {
+  ignoreWithUnderscorePrefix: true,
+  ignoreInherited: true,
+};
+
 export default class RequestHandler {
   private _rootOpts=<Partial<IRpcOpts>>{};
   private _requestHandlerDelegateHolders=<IRequestHandlerDelegateHolder[]>[];
@@ -45,34 +52,28 @@ export default class RequestHandler {
     if (typeof delegate !== 'object') {
       throw new Error('Expecting an object containing request handlers');
     }
-    opts = Object.assign({
-      ignoreWithUnderscorePrefix: true,
-      ignoreInherited: true,
-      ignoreConstructor: true,
-      context: delegate,
-    }, opts);
+    opts = Object.assign({ context: delegate }, DefaultDelegateOpts, opts);
     this._requestHandlerDelegateHolders.push({ delegate, opts });
   }
 
-  // tmp - todo: cur: mv to requestHandler
   addRequestHandler(methodName: string, fn: (...args: any[]) => any): any {
     this._namedRequestHandlers[methodName] = fn;
   }
 
-  // tmp - todo: cur: mv to requestHandler
   addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>): any {
     Object.keys(fnByMethodName).forEach((methodName) => this.addRequestHandler(methodName, fnByMethodName[methodName]));
   }
 
   onValidatedRequest(methodName: string, userArgs: any[]): Promise<any> {
     let context;
+    if (!methodName || methodName === 'constructor') {
+      return Promise.reject({ errorCode: MissingMethodErrorCode, methodName });
+    }
     let fn = this._namedRequestHandlers[methodName];
+    userArgs = userArgs || [];
     if (!fn) {
       const holder = this._requestHandlerDelegateHolders.find((holder: IRequestHandlerDelegateHolder): boolean => {
         const { delegate, opts } = holder;
-        if (methodName === 'constructor') {
-          return false;
-        }
         if (typeof (delegate as any)[methodName] !== 'function') {
           return false;
         }
@@ -89,13 +90,17 @@ export default class RequestHandler {
       });
       if (holder) {
         fn = (<any>holder.delegate)[methodName];
-        context = holder.opts.context;
+        context = holder.opts.context === undefined ? holder.delegate : holder.opts.context;
       }
     }
     if (fn) {
       return Promise.resolve(fn.apply(context, userArgs))
     } else {
-      return Promise.reject({ errorCode: 'MethodNotFound', methodName });
+      return Promise.reject({ errorCode: MissingMethodErrorCode, methodName });
     }
   }
+}
+
+export {
+  MissingMethodErrorCode,
 }

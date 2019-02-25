@@ -30,5 +30,6 @@ export function buildFakeResponsePayload(methodName: string, ...responseArgs: an
 
 
 export {
-  DefaultFakeChannel
+  DefaultFakeChannel,
+  DefaultLocalSenderId,
 }

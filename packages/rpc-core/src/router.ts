@@ -29,16 +29,17 @@ interface IRouterOpts {
   onValidatedRequest: (methodName: string, userArgs: any[]) => Promise<any>;
 }
 
+type PreparseFilter = (rawPayload: IRequestPayload | IResponsePayload) => boolean | IRequestPayload | IResponsePayload;
 
 export default class Router {
   private _pendingRequests = <IDict<RemoteRequest>>{};
-  private _finishedRequestIds = new Set<string>(); // todo: clear/expire (not very big but a memory leak as written.) Perhaps use time-rotating cache
+  private _finishedRequestIds = new Set<string>(); // todo: @wranggle/rotating-cache to clear/expire (not very big but a memory leak as written.)
   private _finishedResponseIds = new Set<string>();
   private transport?: IRpcTransport | void;
   private _stopped = false;
   private _rootOpts = <Partial<IRpcOpts>>{};
   private _onValidatedRequest: (methodName: string, userArgs: any[]) => Promise<any>;
-
+  private _preparseFilters = <PreparseFilter[]>[];
 
   constructor(opts: IRouterOpts) {
     this._onValidatedRequest = opts.onValidatedRequest;
@@ -70,8 +71,11 @@ export default class Router {
   }
 
   routerOpts(opts: Partial<IRpcOpts>) {
-    this._rootOpts = opts;
+    this._rootOpts = Object.assign(this._rootOpts, opts);
     opts.transport && this.useTransport(opts.transport);
+    if (typeof opts.preparseAllIncomingMessages === 'function') {
+      this._preparseFilters.push(opts.preparseAllIncomingMessages);
+    }
   }
 
   pendingRequestIds(): string[] {
@@ -93,19 +97,28 @@ export default class Router {
     if (!this._isForUs(payload)) {
       return;
     }
-    const opts = this._rootOpts;
-    if (typeof opts.preparseAllIncomingMessages === 'function') {
-      const parsed = opts.preparseAllIncomingMessages.call(null, payload);
-      if (parsed === false) {
+    let parsedPayload = payload;
+    this._preparseFilters.forEach(filter => {
+      let current;
+      if (parsedPayload === false) {
         return;
-      } else if (typeof parsed === 'object') {
-        payload = parsed;
       }
-    }
-    if (payload.requestId) {
-      this._receiveRequest(payload as IRequestPayload);
-    } else if (payload.respondingTo) {
-      this._receiveResponse(payload as IResponsePayload);
+      try {
+        current = filter.call(null, parsedPayload);
+      } catch (err) {
+        console.error('Error in preparseAllIncomingMessages filter. Invalidating incoming message.', err);
+        current = false;
+      }
+      if (current === false) {
+        parsedPayload = false;
+      } else if (typeof current === 'object') {
+        parsedPayload = current;
+      }
+    });
+    if (parsedPayload.requestId) {
+      this._receiveRequest(parsedPayload as IRequestPayload);
+    } else if (parsedPayload.respondingTo) {
+      this._receiveResponse(parsedPayload as IResponsePayload);
     }
   }
 
@@ -144,7 +157,7 @@ export default class Router {
     }
     this._finishedResponseIds.add(requestId);
     const req = this._pendingRequests[requestId];
-    if (!req || !req.isRsvp()) { // todo: log/warn
+    if (!req || !req.isRsvp()) { // todo: log/warn?
       return;
     }
     delete this._pendingRequests[requestId];
@@ -163,15 +176,14 @@ export default class Router {
     if (typeof payload !== 'object' || payload.protocol !== Protocol) {
       return false;
     }
-    const { senderId, channel } = this._rootOpts;
-    if (payload.senderId === senderId) { // ignore echos on channel. todo: option to log/warn?
+    const { senderId, channel } = this;
+    if (!payload.senderId || payload.senderId === senderId) { // ignore echos on channel. todo: option to log/warn?
       return false;
     }
     if (!payload.channel || payload.channel !== channel) {
       return false;
     }
     // todo: forEndpoint option? if (payload.forEndpoint && payload.forEndpoint !== senderId) { return false; }
-
     return true;
   }
 }
