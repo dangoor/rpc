@@ -1,4 +1,4 @@
-import { IDict, IRpcOpts} from "./rpc-core";
+import { IDict, IRpcOpts} from "../rpc-core";
 
 
 interface IRequestHandlerDelegateHolder {

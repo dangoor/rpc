@@ -1,7 +1,6 @@
 import RemoteRequest from "./remote-request";
-import {IRpcTransport, IDict, IRpcOpts} from "./rpc-core";
-import {RemotePromise} from "rpc-core/src/flight-receipt";
-import FlightReceipt from "rpc-core/src/flight-receipt";
+import {IRpcTransport, IDict, IRpcOpts} from "../rpc-core";
+import FlightReceipt, {RemotePromise} from "./flight-receipt";
 
 
 const Protocol = 'WranggleRpc-1';
@@ -11,7 +10,7 @@ interface CommonPayload {
   protocol: string;
   senderId: string;
   channel: string;
-  methodName: string,
+  methodName: string;
   // perhaps add option: forEndpoint?: string;
 }
 export interface IRequestPayload extends CommonPayload {

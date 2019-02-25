@@ -1,5 +1,5 @@
-import RemoteRequest from '../src/remote-request';
-import FlightReceipt from '../src/flight-receipt';
+import RemoteRequest from '../../src/internals/remote-request';
+import FlightReceipt from '../../src/internals/flight-receipt';
 
 
 

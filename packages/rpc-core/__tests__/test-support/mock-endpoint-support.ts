@@ -1,6 +1,7 @@
-import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/local-observer-transport';
-import Rpc, {IDelegateOpts, IDict, IRpcOpts} from '../../src/rpc-core';
+import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/internals/local-observer-transport';
+import Rpc, { IDict, IRpcOpts} from '../../src/rpc-core';
 import {EventEmitter} from 'events';
+import {IDelegateOpts} from "../../src/internals/request-handler";
 
 
 export interface IFakeConnection<T> {

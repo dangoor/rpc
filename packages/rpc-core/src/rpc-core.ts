@@ -1,7 +1,7 @@
-import RemoteRequest, {IRequestOpts} from "./remote-request";
-import FlightReceipt from "./flight-receipt";
-import Router, {IRequestPayload, IResponsePayload} from "./router";
-import RequestHandler, {IDelegateOpts} from "./request-handler";
+import RemoteRequest, {IRequestOpts} from "./internals/remote-request";
+import FlightReceipt from "./internals/flight-receipt";
+import Router, {IRequestPayload, IResponsePayload} from "./internals/router";
+import RequestHandler, {IDelegateOpts} from "./internals/request-handler";
 const kvid = require('kvid');
 
 

@@ -1,5 +1,5 @@
 import {IRequestPayload} from "./router";
-const { composeExtendedPromise } = require('./util/composition-util.js');
+const { composeExtendedPromise } = require('../util/composition-util.js');
 
 
 interface IRequestInfo {

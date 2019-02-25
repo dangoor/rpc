@@ -1,5 +1,5 @@
-import LocalObserverTransport from '../src/local-observer-transport';
-import {IRequestPayload, IResponsePayload} from "../src/router";
+import LocalObserverTransport from '../../src/internals/local-observer-transport';
+import {IRequestPayload, IResponsePayload} from "../../src/internals/router";
 const EventEmitter = require('events');
 
 

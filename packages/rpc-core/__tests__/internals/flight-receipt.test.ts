@@ -1,7 +1,7 @@
-import FlightReceipt, {RemotePromise, Status, TimeoutErrorCode} from "../src/flight-receipt";
-import {waitMs} from "./test-support/time-support";
-import {IRequestPayload} from "../src/router";
-import {buildFakeRequestPayload} from "./test-support/fake-payload-support";
+import FlightReceipt, {RemotePromise, Status, TimeoutErrorCode} from "../../src/internals/flight-receipt";
+import {waitMs} from "../test-support/time-support";
+import {IRequestPayload} from "../../src/internals/router";
+import {buildFakeRequestPayload} from "../test-support/fake-payload-support";
 
 
 describe('@wranggle/rpc-core/flight-receipt', () => {

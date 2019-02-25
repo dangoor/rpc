@@ -1,4 +1,4 @@
-import {IRequestPayload, IResponsePayload, Protocol} from "../../src/router";
+import {IRequestPayload, IResponsePayload, Protocol} from "../../src/internals/router";
 
 const DefaultFakeChannel = 'someFakeChannel';
 const DefaultLocalSenderId = 'fakeLocalSide';

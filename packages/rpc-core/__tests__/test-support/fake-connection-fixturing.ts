@@ -1,4 +1,4 @@
-import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/local-observer-transport';
+import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/internals/local-observer-transport';
 import {EventEmitter} from 'events';
 import {waitMs} from "./time-support";
 import {IAnyAddedHandler, IFakeConnection, mockConnection, mockEndpoint} from "./mock-endpoint-support";

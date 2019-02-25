@@ -1,5 +1,5 @@
-import RequestHandler, {MissingMethodErrorCode} from "../src/request-handler";
-import {waitMs} from "./test-support/time-support";
+import RequestHandler, {MissingMethodErrorCode} from "../../src/internals/request-handler";
+import {waitMs} from "../test-support/time-support";
 
 
 describe('@wranggle/rpc-core/request-handler', () => {

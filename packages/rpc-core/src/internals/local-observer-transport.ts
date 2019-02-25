@@ -1,5 +1,5 @@
 import {EventEmitter} from "events"; 
-import {IRpcTransport} from "./rpc-core";
+import {IRpcTransport} from "../rpc-core";
 import {IRequestPayload, IResponsePayload} from "./router";
 
 

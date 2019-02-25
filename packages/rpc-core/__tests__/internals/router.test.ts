@@ -1,7 +1,7 @@
-import Router, {IRequestPayload, IResponsePayload} from '../src/router';
-import RemoteRequest from '../src/remote-request';
-import {buildFakeRequestPayload, buildFakeResponsePayload, DefaultFakeChannel,} from "./test-support/fake-payload-support";
-import {IRpcTransport} from "../src/rpc-core";
+import Router, {IRequestPayload, IResponsePayload} from '../../src/internals/router';
+import RemoteRequest from '../../src/internals/remote-request';
+import {buildFakeRequestPayload, buildFakeResponsePayload, DefaultFakeChannel,} from "../test-support/fake-payload-support";
+import {IRpcTransport} from "../../src/rpc-core";
 
 
 
