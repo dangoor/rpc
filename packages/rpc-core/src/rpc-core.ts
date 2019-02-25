@@ -117,10 +117,9 @@ export default class Rpc<T> {
     this._requestOptsByMethod[methodName] = Object.assign((this._requestOptsByMethod[methodName] || {}), requestOpts);
   }
 
-  // hasConnected(): boolean {
-  //   // todo: implement
-  //   return false;
-  // }
+  checkConnectionStatus(opts=<IConnectionStatusOpts>{}): Promise<IConnectionStatus> {
+    return this.router.checkConnectionStatus(opts); // TODO: not yet implemented
+  }
 
 }
 
@@ -133,6 +132,14 @@ export interface ILogger {
   warn(...args: any[]): void;
   error(...args: any[]): void;
 }
+
+export interface IConnectionStatus {
+
+}
+export interface IConnectionStatusOpts {
+  timeout: number;
+}
+
 
 export interface IDict<T> {
   [ key: string ]: T;

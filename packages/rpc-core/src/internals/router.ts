@@ -1,5 +1,5 @@
 import RemoteRequest from "./remote-request";
-import {IRpcTransport, IDict, IRpcOpts} from "../rpc-core";
+import {IRpcTransport, IDict, IRpcOpts, IConnectionStatusOpts, IConnectionStatus} from "../rpc-core";
 import FlightReceipt, {RemotePromise} from "./flight-receipt";
 
 
@@ -66,6 +66,13 @@ export default class Router {
     const requestPayload = req.buildPayload(this._basePayloadData());
     this.transport.sendMessage(requestPayload);
     return req.flightReceipt();
+  }
+
+  checkConnectionStatus(opts=<IConnectionStatusOpts>{}): Promise<IConnectionStatus> {
+    // todo: implement (do ping-pong check, making sure router does not call onValidatedRequest)
+    // do not Reject for timeout, just mark data as bad connection. (Default timeout? 500?)
+    // some data to include: isConnected; response time; lastMessageReceivedAt; pingPongResponseTime; endpoint data (senderId, protocol, channel) for local and for remote; timestamp;
+    return Promise.resolve({ todo: 'implement this' });
   }
 
   routerOpts(opts: Partial<IRpcOpts>) {
