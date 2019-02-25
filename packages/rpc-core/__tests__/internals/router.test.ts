@@ -110,14 +110,31 @@ describe('@wranggle/rpc-core/router', () => {
         expect(payload.respondingTo).toBe(pendingRequestId);
         expect(payload.error).toEqual('invalidArg');
       });
+
+      test('ignore duplicate requests', () => {
+        receiveFakeRequest('twice', 11);
+        expect(!!lastValidatedRequestReceived).toBe(true);
+        lastValidatedRequestReceived = null;
+        receiveFakeRequest('twice', 22);
+        expect(!!lastValidatedRequestReceived).toBe(false);
+      });
     });
 
     describe('receiving response', () => {
-      const receiveFakeReply = (requestId: string, methodName: string, responseArgs: any[]) => {
+      const receiveFakeReply = (requestId: string, methodName: string, responseArgs=<any[]>[]) => {
         const responsePayload = buildFakeResponsePayload(methodName, ...responseArgs);
         responsePayload.respondingTo = requestId;
         transport.fakeReceive(responsePayload);
       };
+
+      test('update pending request list', async () => {
+        const pendingCount = () => router.pendingRequestIds().length;
+        expect(pendingCount()).toBe(0);
+        router.sendRemoteRequest(new RemoteRequest('any', [], {}));
+        expect(pendingCount()).toBe(1);
+        receiveFakeReply(router.pendingRequestIds()[0], 'any', []);
+        expect(pendingCount()).toBe(0);
+      });
 
       test('resolves RemotePromise', async () => {
         const remotePromise = router.sendRemoteRequest(new RemoteRequest('someGreeting', [], {}));
@@ -128,13 +145,15 @@ describe('@wranggle/rpc-core/router', () => {
         expect(val).toBe('howdy');
       });
 
-      test('update pending request list', async () => {
-        const pendingCount = () => router.pendingRequestIds().length;
-        expect(pendingCount()).toBe(0);
-        router.sendRemoteRequest(new RemoteRequest('any', [], {}));
-        expect(pendingCount()).toBe(1);
-        receiveFakeReply(router.pendingRequestIds()[0], 'any', []);
-        expect(pendingCount()).toBe(0);
+      test('ignore duplicate response messages', async () => {
+        const remotePromise = router.sendRemoteRequest(new RemoteRequest('again', [], {}));
+        const requestId = router.pendingRequestIds()[0];
+        receiveFakeReply(requestId, 'again', [ null, 11 ]);
+        let val = await remotePromise;
+        receiveFakeReply(requestId, 'again', [ null, 22 ]);
+        expect(transport.received.length).toBe(2);
+        val = await remotePromise;
+        expect(val).toBe(11);
       });
     });
 

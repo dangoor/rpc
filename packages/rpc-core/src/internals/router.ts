@@ -33,7 +33,6 @@ type PreparseFilter = (rawPayload: IRequestPayload | IResponsePayload) => boolea
 export default class Router {
   private _pendingRequests = <IDict<RemoteRequest>>{};
   private _finishedRequestIds = new Set<string>(); // todo: @wranggle/rotating-cache to clear/expire (not very big but a memory leak as written.)
-  private _finishedResponseIds = new Set<string>();
   private transport?: IRpcTransport | void;
   private _stopped = false;
   private _rootOpts = <Partial<IRpcOpts>>{};
@@ -151,10 +150,6 @@ export default class Router {
 
   private _receiveResponse(response: IResponsePayload): void {
     const requestId = response.respondingTo;
-    if (this._finishedResponseIds.has(requestId)) {
-      return; // warn/error of duplicate message?
-    }
-    this._finishedResponseIds.add(requestId);
     const req = this._pendingRequests[requestId];
     if (!req || !req.isRsvp()) { // todo: log/warn?
       return;
