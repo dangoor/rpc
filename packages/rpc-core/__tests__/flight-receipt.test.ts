@@ -1,4 +1,4 @@
-import FlightReceipt, { RemotePromise, Status} from "../src/flight-receipt";
+import FlightReceipt, {RemotePromise, Status, TimeoutErrorCode} from "../src/flight-receipt";
 import {waitMs} from "./test-support/time-support";
 import {IRequestPayload} from "../src/router";
 import {buildFakeRequestPayload} from "./test-support/fake-payload-support";
@@ -72,14 +72,50 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
         expect(info.completedAt).toBeDefined();
       });
 
-      test('rejectNow', () => {
+      test('rejectNow', async () => {
         expect(remotePromise.isPending()).toBe(true);
-        remotePromise.rejectNow('noReason');
+        let reason;
+        try {
+          remotePromise.rejectNow('testForceRejectingRemotePromise');
+          await remotePromise;
+        } catch (err) {
+          reason = err;
+        }
+        expect(reason).toBe('testForceRejectingRemotePromise');
         expect(remotePromise.isPending()).toBe(false);
         expect(remotePromise.info().status).toBe(Status.ForcedError);
       });
 
+      describe('timeouts', () => {
+        // note: RemoteRequest calls updateTimeout if a root or method-scoped default was set.
+        // The user can also set it on the RemotePromise, tested here.
+
+        test('applying updateTimeout', async () => {
+          setTimeout(() => remotePromise.resolveNow('good'), 10);
+          remotePromise.updateTimeout(1);
+          let reason;
+          try {
+            await remotePromise;
+          } catch (err) {
+            reason = err;
+          }
+          await waitMs(15);
+          expect(reason).toBe(TimeoutErrorCode);
+        });
+
+        test('modify timeout', async () => {
+          setTimeout(() => {
+            remotePromise.resolveNow('good');
+          }, 20);
+          remotePromise.updateTimeout(10);
+          remotePromise.updateTimeout(30);
+          await waitMs(40);
+          const result = await remotePromise;
+          expect(result).toBe('good');
+        });
+      });
     });
+
 
 
     test('immediately self-resolves when rsvp false', async () => {

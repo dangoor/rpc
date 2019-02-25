@@ -17,6 +17,7 @@ export interface RemotePromise<T> extends Promise<T> {
   rejectNow(reason: any): void;
 }
 
+const TimeoutErrorCode = 'RemoteMethodTimeoutError'; // todo: to constants or custom error
 
 export enum Status {
   Pending = 'Pending',
@@ -24,6 +25,7 @@ export enum Status {
   RemoteResult = 'RemoteResult',
   ForcedError = 'ForcedError',
   ForcedResult = 'ForcedResult',
+  TimeoutError = 'TimeoutError',
   SkipRsvp = 'SkipRsvp',
 }
 
@@ -34,6 +36,7 @@ export default class FlightReceipt {
   private readonly requestedAt: number;
   private completedAt?: number;
   private status = Status.Pending;
+  private _timer?: number | null;
 
 constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) => void) {
     this.requestPayload = requestPayload;
@@ -69,7 +72,13 @@ constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) =
   }
 
   updateTimeout(ms: number): void {
-    // todo: implement. cancel existing if present. pass in callback from RemoteRequest?
+    if (typeof this._timer === 'number') {
+      clearTimeout(this._timer);
+    }
+    if (typeof ms === 'number' && ms > 0) {
+      // @ts-ignore
+      this._timer = setTimeout(() => this._markResolution(Status.TimeoutError, TimeoutErrorCode), ms);
+    }
   }
 
   get rsvp() {
@@ -138,4 +147,9 @@ interface IResponseResolver {
   promise: Promise<any>;
   resolve: (result?: any | PromiseLike<any>) => void;
   reject: (reason?: any) => void;
+}
+
+
+export {
+  TimeoutErrorCode
 }

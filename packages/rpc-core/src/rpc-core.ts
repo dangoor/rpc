@@ -57,29 +57,6 @@ export interface IRpcTransport {
   // todo: reportDisconnect? connection status? decide where to keep features like heartbeat
 }
 
-type MethodName = string;
-
-
-
-// interface IMethodHandlerOpts {
-//   /**
-//    * Optional function that can modify/filter received command data before it is passed to the handler function.
-//    * It is useful for enforcing app-level security.
-//    * The function is passed an array of arguments and should return the same. To override the values, an array must be returned.
-//    * If the function returns `undefined`, the original payload will be used.
-//    * If it returns anything else, it will return a `RequestRejected` error.
-//    *
-//    * @param commandPayload
-//    */
-//   preparseCommandPayload?: (methodName: string, userArgs: any[]) => any[];
-//
-//   /**
-//    * When requests are received, the args are passed to your requestHandler. You can specify ts "this" binding with this option.
-//    * If not set, WranggleRpc will use the object passed into addRequestHandler or null if added using a string method-name.
-//    *
-//    */
-//   context?: any;
-// }
 
 export default class Rpc<T> {
   private _rootOpts = <IRpcOpts>{};
@@ -120,7 +97,7 @@ export default class Rpc<T> {
     const itself = this;
     const requireRegistration = this._rootOpts.requireRemoteMethodRegistration;
     return new Proxy({}, {
-      get: function(obj: any, methodName: MethodName) {
+      get: function(obj: any, methodName: string) {
         if (requireRegistration) {
           // todo: check if methodName allowed
         }
@@ -136,27 +113,17 @@ export default class Rpc<T> {
     return this.router.sendRemoteRequest(req);
   }
 
-
-  setDefaultRequestOptsForMethod(methodName: MethodName, requestOpts: IRequestOpts): void {
+  setDefaultRequestOptsForMethod(methodName: string, requestOpts: IRequestOpts): void {
     this._requestOptsByMethod[methodName] = Object.assign((this._requestOptsByMethod[methodName] || {}), requestOpts);
   }
 
-  aboutThisEndpoint(): IRpcEndpointData {
-    // todo: implement
-    return {};
-  }
-
-  hasConnected(): boolean {
-    // todo: implement
-    return false;
-  }
+  // hasConnected(): boolean {
+  //   // todo: implement
+  //   return false;
+  // }
 
 }
 
-
-export interface IRpcEndpointData {
-
-}
 
 
 // todo: find existing interface?

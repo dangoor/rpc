@@ -88,6 +88,10 @@ export default class RemoteRequest {
     }
     if (!this._receipt) {
       this._receipt = new FlightReceipt(this._payload, this.nodejsCallback);
+      const timeout = this.requestOpts.timeout;
+      if (typeof timeout === 'number' && timeout > 0) {
+        this._receipt.updateTimeout(timeout);
+      }
     }
     return this._receipt;
   }
