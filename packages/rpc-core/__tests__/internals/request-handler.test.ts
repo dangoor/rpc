@@ -25,7 +25,7 @@ describe('@wranggle/rpc-core/request-handler', () => {
     const result = await requestHandler.onValidatedRequest('slowEcho', [ 2, 'hi' ]);
     expect(result).toBe('HI_hi');
   });
-  
+
   test('prefer named handler over delegate', async () => {
     requestHandler.addRequestHandler('hi', (val) => `Higher ${val}`);
     const result = await requestHandler.onValidatedRequest('hi', [ 'priority' ]);
@@ -38,72 +38,97 @@ describe('@wranggle/rpc-core/request-handler', () => {
     });
   });
 
-  test('search multiple delegates', async () => {
-    requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
-    const result = await requestHandler.onValidatedRequest('more');
-    expect(result).toBe(true);
-  });
+  describe('delegated handler', () => {
+    test('search multiple delegates', async () => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
+      const result = await requestHandler.onValidatedRequest('more');
+      expect(result).toBe(true);
+    });
 
-  test('ignore inherited methods by default', async () => {
-    requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
-    let error;
-    try {
-      await requestHandler.onValidatedRequest('more');
-    } catch (reason) {
-      error = reason;
-    }
-    expect(error.errorCode).toBe(MissingMethodErrorCode);
-  });
+    test('ignore inherited methods by default', async () => {
+      requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
+      let error;
+      try {
+        await requestHandler.onValidatedRequest('more');
+      } catch (reason) {
+        error = reason;
+      }
+      expect(error.errorCode).toBe(MissingMethodErrorCode);
+    });
 
-  test('ignore inherited methods by default', async () => {
-    requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
-    let error;
-    try {
-      await requestHandler.onValidatedRequest('more');
-    } catch (reason) {
-      error = reason;
-    }
-    expect(error.errorCode).toBe(MissingMethodErrorCode);
-  });
+    test('ignore inherited methods by default', async () => {
+      requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
+      let error;
+      try {
+        await requestHandler.onValidatedRequest('more');
+      } catch (reason) {
+        error = reason;
+      }
+      expect(error.errorCode).toBe(MissingMethodErrorCode);
+    });
 
-  test('reject when shouldRun filter option returns false', () => {
-    requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => false });
-    return requestHandler.onValidatedRequest('more').catch(reason => {
-      expect(reason.errorCode).toBe(MissingMethodErrorCode);
+    test('reject when shouldRun filter option returns false', () => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => false });
+      return requestHandler.onValidatedRequest('more').catch(reason => {
+        expect(reason.errorCode).toBe(MissingMethodErrorCode);
+      });
+    });
+
+    test('permit method when shouldRun filter option returns true', async () => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => true });
+      const result = await requestHandler.onValidatedRequest('more');
+      expect(result).toBe(true);
+    });
+
+    test('permit inherited methods when option enabled', async () => {
+      requestHandler.addRequestHandlerDelegate(new ChildDelegateClass(), { ignoreInherited: false });
+      const result = await requestHandler.onValidatedRequest('more');
+      expect(result).toBe(true);
+    });
+
+    test('use delegate object as context by default', async () => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
+      await requestHandler.onValidatedRequest('count');
+      const result = await requestHandler.onValidatedRequest('count');
+      expect(result).toBe(2);
+    });
+
+    test('accept passed in context as an option', async () => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { context: { _count: 400 }});
+      const result = await requestHandler.onValidatedRequest('count');
+      expect(result).toBe(401);
+    });
+
+    test('do not permit calls to "constructor"', () => {
+      return requestHandler.onValidatedRequest('constructor', 'val').catch(reason => {
+        expect(reason.errorCode).toBe(MissingMethodErrorCode);
+      });
     });
   });
 
-  test('permit method when shouldRun filter option returns true', async () => {
-    requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => true });
-    const result = await requestHandler.onValidatedRequest('more');
-    expect(result).toBe(true);
-  });
-  
-  test('permit inherited methods when option enabled', async () => {
-    requestHandler.addRequestHandlerDelegate(new ChildDelegateClass(), { ignoreInherited: false });
-    const result = await requestHandler.onValidatedRequest('more');
-    expect(result).toBe(true);
-  });
+  describe('registering named/specific functions', () => {
+    test('accept a "this" context', async () => {
+      const fn = function () {
+        this._count += 10;
+        return this._count;
+      };
+      requestHandler.addRequestHandler('tenCount', fn, { _count: 100 });
+      const result = await requestHandler.onValidatedRequest('tenCount');
+      expect(result).toBe(110);
+    });
 
-  test('use delegate object as context by default', async () => {
-    requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
-    await requestHandler.onValidatedRequest('count');
-    const result = await requestHandler.onValidatedRequest('count');
-    expect(result).toBe(2);
-  });
-
-  test('accept passed in context as an option', async () => {
-    requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { context: { _count: 400 }});
-    const result = await requestHandler.onValidatedRequest('count');
-    expect(result).toBe(401);
-  });
-
-  test('do not permit calls to "constructor"', () => {
-    return requestHandler.onValidatedRequest('constructor', 'val').catch(reason => {
-      expect(reason.errorCode).toBe(MissingMethodErrorCode);
+    test('bulk register', async () => {
+      const handlers = {
+        aa: () => 11,
+        bb: async () => 22,
+      };
+      requestHandler.addRequestHandlers(handlers);
+      const res_aa = await requestHandler.onValidatedRequest('aa');
+      const res_bb = await requestHandler.onValidatedRequest('bb');
+      expect(res_aa).toBe(11);
+      expect(res_bb).toBe(22);
     });
   });
-  
 });
 
 

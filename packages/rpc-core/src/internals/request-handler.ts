@@ -38,10 +38,14 @@ const DefaultDelegateOpts = {
   ignoreInherited: true,
 };
 
+interface NamedRequestHandlerHolder {
+  fn: (...args: any[]) => any;
+  context: any;
+}
 export default class RequestHandler {
   private _rootOpts=<Partial<IRpcOpts>>{};
   private _requestHandlerDelegateHolders=<IRequestHandlerDelegateHolder[]>[];
-  private _namedRequestHandlers = <IDict<(...args: any[]) => any>>{};
+  private _namedRequestHandlerHolderByMethodName = <IDict<NamedRequestHandlerHolder>>{};
 
 
   requestHandlerOpts(opts: Partial<IRpcOpts>) {
@@ -56,12 +60,17 @@ export default class RequestHandler {
     this._requestHandlerDelegateHolders.push({ delegate, opts });
   }
 
-  addRequestHandler(methodName: string, fn: (...args: any[]) => any): any {
-    this._namedRequestHandlers[methodName] = fn;
+  addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): any {
+    // note: intentionally accepts "_" prefix method names
+    this._namedRequestHandlerHolderByMethodName[methodName] = { fn, context };
   }
 
-  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>): any {
-    Object.keys(fnByMethodName).forEach((methodName) => this.addRequestHandler(methodName, fnByMethodName[methodName]));
+  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): any {
+    Object.keys(fnByMethodName).forEach((methodName) => {
+      if (methodName.charAt(0) !== '_') {
+        this.addRequestHandler(methodName, fnByMethodName[methodName], context);
+      }
+    });
   }
 
   onValidatedRequest(methodName: string, userArgs: any[]): Promise<any> {
@@ -69,10 +78,15 @@ export default class RequestHandler {
     if (!methodName || methodName === 'constructor') {
       return Promise.reject({ errorCode: MissingMethodErrorCode, methodName });
     }
-    let fn = this._namedRequestHandlers[methodName];
     userArgs = userArgs || [];
+    let fn;
+    const namedHolder = this._namedRequestHandlerHolderByMethodName[methodName];
+    if (namedHolder) {
+      fn = namedHolder.fn;
+      context = namedHolder.context;
+    }
     if (!fn) {
-      const holder = this._requestHandlerDelegateHolders.find((holder: IRequestHandlerDelegateHolder): boolean => {
+      const delegateHolder = this._requestHandlerDelegateHolders.find((holder: IRequestHandlerDelegateHolder): boolean => {
         const { delegate, opts } = holder;
         if (typeof (delegate as any)[methodName] !== 'function') {
           return false;
@@ -88,9 +102,9 @@ export default class RequestHandler {
         }
         return true;
       });
-      if (holder) {
-        fn = (<any>holder.delegate)[methodName];
-        context = holder.opts.context === undefined ? holder.delegate : holder.opts.context;
+      if (delegateHolder) {
+        fn = (<any>delegateHolder.delegate)[methodName];
+        context = delegateHolder.opts.context === undefined ? delegateHolder.delegate : delegateHolder.opts.context;
       }
     }
     if (fn) {

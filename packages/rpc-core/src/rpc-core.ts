@@ -79,12 +79,26 @@ export default class Rpc<T> {
     this.requestHandler.addRequestHandlerDelegate(delegate, opts);
   }
 
-  addRequestHandler(methodName: string, fn: (...args: any[]) => any): void {
-    this.requestHandler.addRequestHandler(methodName, fn);
+  /**
+   * Add a function to handle incoming request messages.
+   *
+   * @param methodName. String that is a legitimate js variable name. (No spaces and such.)
+   * @param fn Function that runs the remotely-passed arguments. This function can return a value or a promise.
+   * @param context. Optional. Sets the "this" context of your function. Note/reminder: arrow functions do not have a "this" binding,
+   *   so use a full "function" when setting this option.
+   */
+  addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): void {
+    this.requestHandler.addRequestHandler(methodName, fn, context);
   }
 
-  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>): void {
-    this.requestHandler.addRequestHandlers(fnByMethodName);
+  /**
+   * Shortcut to addRequestHandler. Accepts an object of methodName-function pairs.
+   * Note: methodName/keys starting with underscore "_" are skipped here, but can be added with a direct call to `addRequestHandler`
+   * @param fnByMethodName
+   * @param context
+   */
+  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): void {
+    this.requestHandler.addRequestHandlers(fnByMethodName, context);
   }
 
   opts(opts: Partial<IRpcOpts>): void {
