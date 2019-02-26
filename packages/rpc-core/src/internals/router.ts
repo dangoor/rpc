@@ -11,6 +11,7 @@ interface CommonPayload {
   senderId: string;
   channel: string;
   methodName: string;
+  transportMeta: any;
   // perhaps add option: forEndpoint?: string;
 }
 export interface IRequestPayload extends CommonPayload {

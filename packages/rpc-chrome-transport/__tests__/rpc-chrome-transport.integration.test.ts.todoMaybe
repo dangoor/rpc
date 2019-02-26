@@ -1,0 +1,19 @@
+
+// todo: test in chrome with puppeteer-core
+// NOTE: must load extension with headless set to false. eg:
+// const browser = await puppeteer.launch({
+//   headless: false,
+//   args: [
+//     '--disable-extensions-except=/path/to/extension/',
+//     '--load-extension=/path/to/extension/',
+//   ]
+// });
+
+// todo: test fixture extension. Create background page; inject a content script. Test rpc between the two (with sendToTabId option)
+
+describe('@wranggle/rpc-chrome-transport', () => {
+  test.skip('integration test', () => {
+    // todo
+  });
+
+});
