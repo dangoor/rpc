@@ -2,13 +2,13 @@ import RemoteRequest, {IRequestOpts} from "./internals/remote-request";
 import FlightReceipt from "./internals/flight-receipt";
 import Router, {IRequestPayload, IResponsePayload} from "./internals/router";
 import RequestHandler, {IDelegateOpts} from "./internals/request-handler";
+import { registerTransport} from "./internals/transport-construction";
 const kvid = require('kvid');
 
 
 
 export interface IRpcOpts {
   channel: string;
-  transport: IRpcTransport;
 
   allRequestOpts: IRequestOpts;
   // allMethodHandlerOpts: IMethodHandlerOpts;
@@ -35,6 +35,11 @@ export interface IRpcOpts {
   requireRemoteMethodRegistration: boolean;
 
   logger: ILogger;
+
+  /**
+   * Shortcut/convenience for setting up transport during initial construction. Param's value is passed along to `useTransport`
+   */
+  transport?: IRpcTransport | object | string;
 }
 
 
@@ -66,9 +71,12 @@ export default class Rpc<T> {
   private readonly router: Router;
   private readonly requestHandler = new RequestHandler();
 
-  constructor(opts=<Partial<IRpcOpts>>{}) {
+  constructor(rpcOpts?: Partial<IRpcOpts>) {
     this.router = new Router({ onValidatedRequest: this.requestHandler.onValidatedRequest.bind(this.requestHandler) });
-    this.opts(Object.assign({ senderId: kvid(8) }, DefaultRpcOpts, opts));
+    if (typeof rpcOpts === 'string') { // hmm, not an especially useful constructor signature but looks good in the readme example
+      rpcOpts = { transport: rpcOpts };
+    }
+    this.opts(Object.assign({ senderId: kvid(8) }, DefaultRpcOpts, rpcOpts));
   }
 
   /**
@@ -99,6 +107,10 @@ export default class Rpc<T> {
    */
   addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): void {
     this.requestHandler.addRequestHandlers(fnByMethodName, context);
+  }
+
+  useTransport(transportOpts: IRpcTransport | object | string) {
+    this.router.useTransport(transportOpts);
   }
 
   opts(opts: Partial<IRpcOpts>): void {
@@ -135,6 +147,9 @@ export default class Rpc<T> {
     return this.router.checkConnectionStatus(opts); // TODO: not yet implemented
   }
 
+  static registerTransport(transportType: string, transportFactory: (opts: any) => IRpcTransport): void {
+    registerTransport(transportType, transportFactory);
+  }
 }
 
 

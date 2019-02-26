@@ -55,3 +55,5 @@ describe('@wranggle/rpc-core', () => {
   });
 });
 
+// todo: mocks to verify any not-yet used public methods reach their correct method. (registerTransport, setDefaultRequestOptsForMethod, etc)
+

@@ -1,5 +1,5 @@
 import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/internals/local-observer-transport';
-import Rpc, { IDict, IRpcOpts} from '../../src/rpc-core';
+import WranggleRpc, { IDict, IRpcOpts} from '../../src/rpc-core';
 import {EventEmitter} from 'events';
 import {IDelegateOpts} from "../../src/internals/request-handler";
 
@@ -22,7 +22,7 @@ export interface IMockEndpointOpts {
 }
 
 export interface IMockEndpoint<T> {
-  rpc: Rpc<T>,
+  rpc: WranggleRpc<T>,
   observer: EventEmitter,
   transport: LocalObserverTransport,
   remote: T,
@@ -35,7 +35,7 @@ export interface IAnyAddedHandler  {
 export function mockEndpoint<T>(opts=<IMockEndpointOpts>{}): IMockEndpoint<T> {
   const observer = opts.observer || new EventEmitter();
   const transport = new LocalObserverTransport(observer);
-  const rpc = new Rpc<T>(Object.assign({ transport }, opts.rpcOpts));
+  const rpc = new WranggleRpc<T>(Object.assign({ transport }, opts.rpcOpts));
   rpc.addRequestHandlers(opts.requestHandlers || {});
   opts.requestDelegate && rpc.addRequestHandlerDelegate(opts.requestDelegate, opts.requestDelegateOpts);
   return {

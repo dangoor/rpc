@@ -1,6 +1,7 @@
 import RemoteRequest from "./remote-request";
 import {IRpcTransport, IDict, IRpcOpts, IConnectionStatusOpts, IConnectionStatus} from "../rpc-core";
 import FlightReceipt, {RemotePromise} from "./flight-receipt";
+import {buildTransport} from "./transport-construction";
 
 
 const Protocol = 'WranggleRpc-1';
@@ -44,10 +45,10 @@ export default class Router {
     this._onValidatedRequest = opts.onValidatedRequest;
   }
 
-  useTransport(transport: IRpcTransport) {
-    this.transport = transport;
-    transport.listen(this._onMessage.bind(this));
-    // todo: send handshake message
+  useTransport(transportOpts: IRpcTransport | object | string) {
+    const transport = this.transport = buildTransport(transportOpts);
+    transport && transport.listen(this._onMessage.bind(this));
+    // todo: send handshake message?
   }
 
   stopTransport(): void {
