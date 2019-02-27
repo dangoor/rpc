@@ -1,12 +1,12 @@
 {
-  "name": "@wranggle/rpc-chrome-transport",
+  "name": "@wranggle/rpc-browser-extension-transport",
   "version": "0.1.0",
-  "description": "WranggleRpc transport for Chromium browser extensions",
+  "description": "WranggleRpc transport for browser extensions",
   "scripts": {
     "tsc": "tsc",
     "test": "jest"
   },
-  "main": "lib/rpc-chrome-transport.js",
+  "main": "lib/browser-extension-transport.js",
   "directories": {
     "lib": "lib",
     "test": "__tests__"
@@ -31,7 +31,8 @@
     "rpc",
     "wranggle-rpc",
     "wranggle-rpc-transport",
-    "chrome-extension"
+    "chrome-extension",
+    "browser-extension"
   ],
   "author": "Jeff Ferber <jeff@wranggle.com>",
   "homepage": "https://github.com/wranggle/rpc#readme",

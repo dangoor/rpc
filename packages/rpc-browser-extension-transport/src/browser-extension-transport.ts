@@ -54,6 +54,7 @@ export default class ChromeTransport implements IRpcTransport {
     if (!chromeApi.hasChromeExtensionApi()) {
       throw new Error('Invalid environment: expecting a Chromium extension');
     }
+    // TODO: use firefox `browser` API directly. (but they're also compatible w/ Chrome API so just using that in first pass)
     this._isContentScript = chromeApi.isContentScript();
     this._chromeExtensionId = chromeApi.getChromeRuntimeId();
     this._opts = this._initOpts(opts);

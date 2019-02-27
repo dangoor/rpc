@@ -11,7 +11,7 @@
 
 // todo: test fixture extension. Create background page; inject a content script. Test rpc between the two (with sendToTabId option)
 
-describe('@wranggle/rpc-chrome-transport', () => {
+describe('@wranggle/rpc-browser-extension-transport', () => {
   test.skip('integration test', () => {
     // todo
   });

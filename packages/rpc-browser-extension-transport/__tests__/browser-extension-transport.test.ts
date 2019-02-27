@@ -1,5 +1,5 @@
 // import WranggleRpc from '@wranggle/rpc-core';
-import ChromeTransport from '../src/rpc-chrome-transport';
+import ChromeTransport from '../src/browser-extension-transport';
 import { fakeSender, FakeChromeExtensionId } from './test-support/fake-sender-support';
 
 jest.mock('../src/chrome-manifest-2-api.js', () => _setupCustomMock());
@@ -7,7 +7,7 @@ jest.mock('../src/chrome-manifest-2-api.js', () => _setupCustomMock());
 const noop = () => {};
 
 
-describe('@wranggle/rpc-chrome-transport', () => {
+describe('@wranggle/rpc-browser-extension-transport', () => {
   let lastSend, lastReceived;
   let fakeChromeListener;
 
