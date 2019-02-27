@@ -64,7 +64,7 @@ You create an instance of WranggleRpc in each window/process endpoint, giving ea
      
 The main _@wranggle/rpc_ package ships with:
 
-* BrowserExtensionTransport: messaging over chrome.runtime or chrome.tabs. (Chromium browser extensions) 
+* BrowserExtensionTransport: messaging over chrome.runtime or chrome.tabs.  
 * ElectronTransport: messaging over the Electron.js ipc system.
 * LocalObserverTransport: messaging over a shared EventEmitter. (When both WranggleRpc endpoints are in the same window/process.)
 * PostMessageTransport: messaging over window.postMessage. (When communicating across browser windows/iframes.)
