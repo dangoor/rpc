@@ -74,12 +74,12 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
   test('requires messages pass custom permitMessage when provided', () => {
     const transport = new ChromeTransport({
       forTabId: 4,
-      permitMessage: (payload, sender) => payload.transportMeta === 'ok',
+      permitMessage: (payload, sender) => payload.transportMeta.allow === 'ok',
     });
-    fakeReceive(transport, { aa: 11, transportMeta: 'ok' }, fakeSender(4));
+    fakeReceive(transport, { aa: 11, transportMeta: { allow: 'ok' }}, fakeSender(4));
     expect(!!lastReceived).toBe(true);
     lastReceived = null;
-    fakeReceive(transport, { bb: 22, transportMeta: 'no' }, fakeSender(4));
+    fakeReceive(transport, { bb: 22, transportMeta: { allow: 'no' }}, fakeSender(4));
     expect(!!lastReceived).toBe(false);
   });
 });
