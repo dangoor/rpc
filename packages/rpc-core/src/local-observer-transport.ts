@@ -5,7 +5,6 @@ import {IRequestPayload, IResponsePayload} from "./internals/router";
 
 export interface ILocalObserverTransportOpts {
   messageEventName: string;
-  // todo: option to preparse/filter
 }
 const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'

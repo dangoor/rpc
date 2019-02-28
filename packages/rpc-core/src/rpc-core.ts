@@ -17,8 +17,9 @@ export interface IRpcOpts {
    * Function/hook to modify or filter RPC request and response messages. It runs after the transport receives the message (and possibly does its own
    * filtering) and after WranggleRpc verifies it is a properly formatted message but before the data is used.
    *
-   * If your function returns false, the message is considered invalid. If true, the original payload is used unchanged.
-   * Otherwise, it can return a modified payload.
+   * It can return a modified payload or a boolean. Return false to invalidate and ignore the received message, return true
+   * to use the passed-in payload.
+   *
    */
   preparseAllIncomingMessages: (rawPayload: IRequestPayload | IResponsePayload) => boolean | IRequestPayload | IResponsePayload;
 
