@@ -107,11 +107,34 @@ export default class RequestHandler {
         context = delegateHolder.opts.context === undefined ? delegateHolder.delegate : delegateHolder.opts.context;
       }
     }
-    if (fn) {
-      return Promise.resolve(fn.apply(context, userArgs))
+    if (!fn) {
+      return Promise.reject({errorCode: MissingMethodErrorCode, methodName});
     } else {
-      return Promise.reject({ errorCode: MissingMethodErrorCode, methodName });
+      try {
+        return Promise.resolve(fn.apply(context, userArgs)).catch(reason => {
+          if (typeof reason === 'object' && (reason.stack || reason instanceof Error)) {
+            return Promise.reject(this._applyUncaughtErrorData(reason, { methodName }));
+          } else {
+            return Promise.reject(reason);
+          }
+        });
+      } catch (err) {
+        console.warn(`Uncaught error in "${methodName}" request handler:`, err);
+        return Promise.reject(this._applyUncaughtErrorData(err, { methodName }));
+      }
     }
+  }
+
+  get senderId() {
+    return this._rootOpts.senderId;
+  }
+
+  _applyUncaughtErrorData(err: any, extra: any) {
+    const { message, fileName, lineNumber } = err;
+    return  Object.assign({
+      errorCode: err.errorCode || (!err.name || err.name === 'Error' ? 'UncaughtError' : err.name),
+      endpoint: this.senderId,
+    }, err, { message, fileName, lineNumber }, extra);
   }
 }
 

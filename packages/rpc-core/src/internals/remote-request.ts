@@ -58,7 +58,8 @@ export default class RemoteRequest {
     const { requestId, methodName, userArgs } = this;
     const payload = Object.assign(endpointBaseData, {
       requestId, methodName, userArgs,
-      rsvp: this.isRsvp()
+      rsvp: this.isRsvp(),
+      transportMeta: {},
     }) as IRequestPayload;
     this._payload = payload;
     return payload;

@@ -1,4 +1,4 @@
-import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/internals/local-observer-transport';
+import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/local-observer-transport';
 import WranggleRpc, { IDict, IRpcOpts} from '../../src/rpc-core';
 import {EventEmitter} from 'events';
 import {IDelegateOpts} from "../../src/internals/request-handler";

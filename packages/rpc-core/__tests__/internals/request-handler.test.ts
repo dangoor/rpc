@@ -32,6 +32,28 @@ describe('@wranggle/rpc-core/request-handler', () => {
     expect(result).toBe('Higher priority');
   });
 
+  test('pass along async/promise rejections', async () => {
+    let err;
+    await requestHandler.onValidatedRequest('slowReject', [ 1 ]).catch(reason => err = reason);
+    expect(err).toBe('Halt!');
+  });
+
+  test('handle and decorate uncaught error in sync request handler', async () => {
+    let err;
+    requestHandler.requestHandlerOpts({ senderId: 'someEndpoint' });
+    await requestHandler.onValidatedRequest('kaboom').catch(reason => err = reason);
+    expect(err.endpoint).toBe('someEndpoint');
+    expect(err.message).toBe('KABOOM!');
+    expect(err.methodName).toBe('kaboom');
+  });
+
+  test('handle uncaught error in async request handler', async () => {
+    let err;
+    await requestHandler.onValidatedRequest('slowKaboom', [ 3 ]).catch(reason => err = reason);
+    expect(err.message).toBe('kah...boom');
+  });
+
+
   test('reject missing methods', () => {
     return requestHandler.onValidatedRequest('missing').catch(err => {
       expect(err.errorCode).toBe(MissingMethodErrorCode);
@@ -140,13 +162,27 @@ class SomeDelegatedClass {
     }
   }
 
-  hi(val: string) {
+  hi(val: string): string {
     return `hi ${val}`;
   }
 
   async slowEcho(ms: number, val: any): Promise<any> {
     await waitMs(ms);
     return `${val.toUpperCase()}_${val.toLowerCase()}`;
+  }
+
+  kaboom(): any {
+    throw new Error('KABOOM!');
+  }
+
+  async slowReject(ms: number): Promise<any> {
+    await waitMs(ms);
+    return Promise.reject('Halt!')
+  }
+
+  async slowKaboom(ms: number, val: any): Promise<any> {
+    await waitMs(ms);
+    throw new Error('kah...boom');
   }
 }
 

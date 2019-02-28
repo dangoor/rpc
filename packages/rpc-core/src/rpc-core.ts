@@ -20,26 +20,22 @@ export interface IRpcOpts {
    * If your function returns false, the message is considered invalid. If true, the original payload is used unchanged.
    * Otherwise, it can return a modified payload.
    */
-  preparseAllIncomingMessages?: (rawPayload: IRequestPayload | IResponsePayload) => boolean | IRequestPayload | IResponsePayload;
+  preparseAllIncomingMessages: (rawPayload: IRequestPayload | IResponsePayload) => boolean | IRequestPayload | IResponsePayload;
 
 
   /**
    * A string sent with every message. Generated randomly by default but can be specified here.
    */
   senderId: string;
-  /**
-   * When true, this checks if the method being called has been locally registered before sending the command.
-   * Default is false/off. When true, you need to register the permitted methods with `addRemoteMethodNames`.
-   *
-   */
-  requireRemoteMethodRegistration: boolean;
 
-  logger: ILogger;
 
   /**
    * Shortcut/convenience for setting up transport during initial construction. Param's value is passed along to `useTransport`
    */
-  transport?: IRpcTransport | object | string;
+  transport: IRpcTransport | object | string;
+
+  // todo: accept a logger
+  // logger: ILogger;
 }
 
 
@@ -121,12 +117,8 @@ export default class Rpc<T> {
 
   remoteInterface(): T {
     const itself = this;
-    const requireRegistration = this._rootOpts.requireRemoteMethodRegistration;
     return new Proxy({}, {
       get: function(obj: any, methodName: string) {
-        if (requireRegistration) {
-          // todo: check if methodName allowed
-        }
         return (...userArgs: any[]) => itself.makeRemoteRequest(methodName, userArgs);
       }
     }) as T;
@@ -147,6 +139,9 @@ export default class Rpc<T> {
     return this.router.checkConnectionStatus(opts); // TODO: not yet implemented
   }
 
+  get senderId(): string {
+    return this._rootOpts.senderId;
+  }
   static registerTransport(transportType: string, transportFactory: (opts: any) => IRpcTransport): void {
     registerTransport(transportType, transportFactory);
   }

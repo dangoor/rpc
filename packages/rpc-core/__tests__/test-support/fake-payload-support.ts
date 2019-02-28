@@ -12,6 +12,7 @@ export function buildFakeRequestPayload(methodName: string, ...userArgs: any[]):
     rsvp: true,
     senderId: DefaultLocalSenderId,
     channel: DefaultFakeChannel,
+    transportMeta: {},
     protocol: Protocol,
   };
 }
@@ -24,6 +25,7 @@ export function buildFakeResponsePayload(methodName: string, ...responseArgs: an
     respondingTo: DefaultFakeRequestId,
     senderId: DefaultRemoteSenderId,
     channel: DefaultFakeChannel,
+    transportMeta: {},
     protocol: Protocol,
   };
 }

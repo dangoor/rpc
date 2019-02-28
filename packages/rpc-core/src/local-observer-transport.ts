@@ -1,6 +1,6 @@
 import {EventEmitter} from "events"; 
-import {IRpcTransport} from "../rpc-core";
-import {IRequestPayload, IResponsePayload} from "./router";
+import {IRpcTransport} from "./rpc-core";
+import {IRequestPayload, IResponsePayload} from "./internals/router";
 
 
 export interface ILocalObserverTransportOpts {
@@ -22,9 +22,13 @@ export default class LocalObserverTransport implements IRpcTransport {
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;
-  private eventListener?: (payload: IRequestPayload | IResponsePayload) => void;
+  private _eventListener?: (payload: IRequestPayload | IResponsePayload) => void;
 
   constructor(eventEmitter: EventEmitter, opts=<Partial<ILocalObserverTransportOpts>>{}) {
+    if (!_isEventEmitter(eventEmitter)) {
+      console.error('LocalObserverTransport expecting an EventEmitter for its first param. Got:', eventEmitter);
+      throw new Error('InvalidArgument constructing LocalObserverTransport');
+    }
     this.observer = eventEmitter;
     opts = Object.assign({}, DefaultOpts, opts);
     this.eventName = opts.messageEventName || DefaultOpts.messageEventName;
@@ -32,12 +36,12 @@ export default class LocalObserverTransport implements IRpcTransport {
 
   listen(handler: (payload: IRequestPayload | IResponsePayload) => void): void {
     this._removeExistingListener();
-    this.eventListener = (payload: IRequestPayload | IResponsePayload) => {
+    this._eventListener = (payload: IRequestPayload | IResponsePayload) => {
       if (!this._isStopped) {
         handler(payload);
       }
     };
-    this.observer.on(this.eventName, this.eventListener);
+    this.observer.on(this.eventName, this._eventListener);
   }
 
   sendMessage(payload: IRequestPayload | IResponsePayload): void {
@@ -52,6 +56,10 @@ export default class LocalObserverTransport implements IRpcTransport {
   }
 
   _removeExistingListener() {
-    this.eventListener && this.observer.off(this.eventName, this.eventListener);
+    this._eventListener && this.observer.removeListener(this.eventName, this._eventListener);
   }
+}
+
+function _isEventEmitter(obj: any): boolean {
+  return typeof(obj === 'object') && [ 'on', 'emit', 'removeListener' ].every(m => typeof obj[m] === 'function');
 }

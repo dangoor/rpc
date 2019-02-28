@@ -1,5 +1,5 @@
-import LocalObserverTransport from '../../src/internals/local-observer-transport';
-import {IRequestPayload, IResponsePayload} from "../../src/internals/router";
+import LocalObserverTransport from '../src/local-observer-transport';
+import {IRequestPayload, IResponsePayload} from "../src/internals/router";
 const EventEmitter = require('events');
 
 
@@ -24,9 +24,9 @@ describe('@wranggle/rpc-core/local-observer-transport', () => {
   });
 
   test('sending another instance a message with shared observer', () => {
-    const observer = new EventEmitter();
-    const transport_1 = new LocalObserverTransport(observer);
-    const transport_2 = new LocalObserverTransport(observer);
+    const sharedObserver = new EventEmitter();
+    const transport_1 = new LocalObserverTransport(sharedObserver);
+    const transport_2 = new LocalObserverTransport(sharedObserver);
     transport_1.listen(testMessageHandler);
     // @ts-ignore // todo: mock request or response payload
     transport_2.sendMessage({ aa: 11 });

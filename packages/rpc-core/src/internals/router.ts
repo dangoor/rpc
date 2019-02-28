@@ -12,7 +12,7 @@ interface CommonPayload {
   senderId: string;
   channel: string;
   methodName: string;
-  transportMeta: any;
+  transportMeta: IDict<any>;
   // perhaps add option: forEndpoint?: string;
 }
 export interface IRequestPayload extends CommonPayload {
@@ -172,6 +172,7 @@ export default class Router {
     return {
       channel, senderId,
       protocol: Protocol,
+      transportMeta: {},
     };
   }
 
