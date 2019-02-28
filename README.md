@@ -68,12 +68,10 @@ The main _@wranggle/rpc_ package ships with:
 * ElectronTransport: messaging over the Electron.js ipc system.
 * LocalObserverTransport: messaging over a shared EventEmitter. (When both WranggleRpc endpoints are in the same window/process.)
 * PostMessageTransport: messaging over window.postMessage. (When communicating across browser windows/iframes.)
-* RelayTransport: bridge between two other transports, when a message needs to hop across an intermediate window/process.
 * WebSocketTransport: messaging over websocket. (Communicating between browser and WebSocket server) 
-        
+
+Additional, _Relay_ can be used as a bridge between two transports, when a message needs to hop across an intermediate window/process. 
 You can also create your own custom transports. 
 
 Each transport has its own configuration options. Take a look at the README for the ones you plan on using.
 
-     
-   
