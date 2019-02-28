@@ -3,7 +3,8 @@
  "compilerOptions": {
   "outDir": "./lib",
   "paths": {
-   "src/*": [ "./src/*" ]
+   "src/*": [ "./src/*" ],
+   "packages/*": [ "../*" ]
   }
 
  },

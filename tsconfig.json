@@ -1,9 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": "./packages",
-    "paths": {
-      "@wranggle/*": ["./*/src"]
-    },
     "target": "es6",
     "module": "commonjs",
     "lib": ["es2015", "es2017", "dom"],

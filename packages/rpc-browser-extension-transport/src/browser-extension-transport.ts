@@ -1,5 +1,5 @@
-import {IRpcTransport} from "@wranggle/rpc-core/src/rpc-core";
-import {IRequestPayload, IResponsePayload} from "@wranggle/rpc-core/src/internals/router";
+import {IRpcTransport} from "rpc-core/src/rpc-core";
+import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
 const chromeApi = require('./chrome-manifest-2-api.js');
 
 

@@ -13,4 +13,11 @@ module.exports = {
   transform: {
     '^.+\\.(ts)$': 'ts-jest',
   },
+  // moduleNameMapper: {
+  //   "^packages/(.*)": "<rootDir>/../packages/$1",
+  // },
+  // moduleDirectories: [
+  //   "node_modules",
+  //   "packages"
+  // ],
 };

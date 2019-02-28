@@ -119,7 +119,7 @@ export default class RequestHandler {
           }
         });
       } catch (err) {
-        console.warn(`Uncaught error in "${methodName}" request handler:`, err);
+        // console.warn(`Uncaught error in "${methodName}" request handler:`, err);
         return Promise.reject(this._applyUncaughtErrorData(err, { methodName }));
       }
     }

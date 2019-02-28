@@ -1,5 +1,5 @@
-import WranggleRpc, {IDict} from '@wranggle/rpc-core/src/rpc-core';
-import {IRequestPayload, IResponsePayload} from "@wranggle/rpc-core/src/internals/router";
+import WranggleRpc, {IDict} from 'rpc-core/src/rpc-core';
+import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
 import PostmessageTransport from "../src/postmessage-transport";
 import { EventEmitter } from 'events';
 
