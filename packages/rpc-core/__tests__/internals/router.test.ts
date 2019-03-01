@@ -2,6 +2,7 @@ import Router from '../../src/internal/router';
 import RemoteRequest from '../../src/internal/remote-request';
 import {buildFakeRequestPayload, buildFakeResponsePayload, DefaultFakeChannel,} from "../test-support/fake-payload-support";
 import {RequestPayload, ResponsePayload, RpcTransport} from "../../src/interfaces";
+import FlightReceipt from "rpc-core/src/internal/flight-receipt";
 
 
 
@@ -42,8 +43,9 @@ describe('@wranggle/rpc-core/router', () => {
 
     describe('sending requests', () => {
 
-      test('proper payload data over transport', () => {
-        router.sendRemoteRequest(new RemoteRequest('boo', [ 1, 2 ], {}));
+      test('proper payload data over transport', async () => {
+        const receipt = router.sendRemoteRequest(new RemoteRequest('boo', [ 1, 2 ], {}));
+        await (receipt as any).promiseSent();
         expect(transport.sent.length).toBe(1);
         const payload = transport.sent[0] as RequestPayload;
         const { requestId, channel, senderId, protocol, methodName, userArgs, rsvp } = payload;

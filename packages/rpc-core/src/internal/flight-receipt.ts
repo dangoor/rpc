@@ -1,24 +1,37 @@
-import {RequestInfo, RequestPayload, RemotePromise, RequestStatus} from "../interfaces";
+import {RequestInfo, RequestPayload, RemotePromise, RequestStatus, RequestOpts} from "../interfaces";
+import buildPromiseResolver, {PromiseResolver} from "../util/promise-resolver";
 
 const { composeExtendedPromise } = require('../util/composition-util.js');
 
 
 const TimeoutErrorCode = 'RemoteMethodTimeoutError'; // todo: to constants or custom error
 
+export interface FlightReceiptOpts {
+  payload: RequestPayload;
+  promiseSent: Promise<any>;
+  updateRequestOpts: (opts: RequestOpts) => void;
+  nodejsCallback?: (...args: any[]) => void;
+}
+
 export default class FlightReceipt {
-  private readonly requestPayload: RequestPayload;
-  private readonly _responseResolver: IResponseResolver;
+  private readonly payload!: RequestPayload;
+  private readonly updateRequestOpts!: (opts: RequestOpts) => void;
   private readonly nodejsCallback!: void | ((...args: any[]) => void);
+  private readonly _promiseSent!: Promise<undefined>;
+  private readonly responseResolver: PromiseResolver;
   private readonly requestedAt: number;
+
   private completedAt?: number;
   private status = RequestStatus.Pending;
   private _timer?: number | null;
 
-constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) => void) {
-    this.requestPayload = requestPayload;
-    this.nodejsCallback = nodejsCallback;
+  constructor(opts: FlightReceiptOpts) {
+    const { payload, updateRequestOpts, nodejsCallback } = opts;
+    Object.assign(this, { payload, updateRequestOpts, nodejsCallback });
+    this._promiseSent = opts.promiseSent;
     this.requestedAt = Date.now();
-    this._responseResolver = this._initResponseResolver();
+    this.responseResolver = buildPromiseResolver();
+
     if (this.rsvp === false) {
       this._markResolution(RequestStatus.SkipRsvp, null);
     }
@@ -30,7 +43,7 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
 
   info(): RequestInfo {
     const { requestedAt, completedAt, status } = this;
-    return { ...this.requestPayload,
+    return { ...this.payload,
       requestedAt: new Date(requestedAt),
       completedAt: completedAt ? new Date(completedAt) : void(0),
       status
@@ -47,6 +60,11 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
     // todo: _nodejsCallback case
   }
 
+  // todo: change rsvp / request opts. note: in next tick. Maybe RemoteRequest will pass in a callback for setting its own options, one that throws if already sent
+  // opts(requestOpts: RequestOpts) {
+  //
+  // }
+
   updateTimeout(ms: number): void {
     if (typeof this._timer === 'number') {
       clearTimeout(this._timer);
@@ -58,11 +76,18 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
   }
 
   get rsvp() {
-    return this.requestPayload.rsvp;
+    return this.payload.rsvp;
   }
-  
+
+  requestOpts(opts: RequestOpts) {
+    this.updateRequestOpts(opts);
+  }
+  promiseSent(): Promise<undefined> {
+    return this._promiseSent;
+  }
+
   _decoratedPromise(): RemotePromise<any> {
-    const promise = this._responseResolver.promise;
+    const promise = this.responseResolver.promise;
     this._ensurePromiseDecorated(promise);
     // @ts-ignore
     return promise;
@@ -72,15 +97,6 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
     this._markResolution(error ? RequestStatus.RemoteError : RequestStatus.RemoteResult, error, ...result);
   }
 
-  _initResponseResolver(): IResponseResolver {
-    let promise, resolve, reject;
-    promise = new Promise((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    // @ts-ignore
-    return { promise, resolve, reject };
-  }
 
   private _ensurePromiseDecorated(promise: Promise<any>): void {
     // @ts-ignore
@@ -109,7 +125,7 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
     }
     this.completedAt = this.rsvp ? Date.now() : this.requestedAt;
     this.status = status;
-    const { resolve, reject } = this._responseResolver;
+    const { resolve, reject } = this.responseResolver;
     if (error) {
       reject(error);
     } else {
@@ -117,12 +133,6 @@ constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) =>
     }
   }
 
-}
-
-interface IResponseResolver {
-  promise: Promise<any>;
-  resolve: (result?: any | PromiseLike<any>) => void;
-  reject: (reason?: any) => void;
 }
 
 

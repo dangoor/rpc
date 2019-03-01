@@ -1,6 +1,6 @@
 import FlightReceipt, {TimeoutErrorCode} from "../../src/internal/flight-receipt";
 import {waitMs} from "../test-support/time-support";
-import {RemotePromise, RequestPayload, RequestStatus} from "../../src/interfaces";
+import {RemotePromise, RequestOpts, RequestPayload, RequestStatus} from "../../src/interfaces";
 import {buildFakeRequestPayload} from "../test-support/fake-payload-support";
 
 
@@ -8,7 +8,11 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
 
 
   const buildFlightReceipt = (requestPayload=<Partial<RequestPayload>>{}) =>
-    new FlightReceipt({ ...buildFakeRequestPayload('fakeMethod'), ...requestPayload });
+    new FlightReceipt({
+      payload: { ...buildFakeRequestPayload('fakeMethod'), ...requestPayload },
+      updateRequestOpts: (opts: RequestOpts) => {},
+      promiseSent: Promise.resolve(),
+    });
 
 
   describe('RemotePromise', () => {
@@ -128,7 +132,8 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
     });
   });
 
-  // todo: updateTimeout
+
+  // todo: update rsvp option (once implemented)
 
 
 });

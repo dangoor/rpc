@@ -1,5 +1,7 @@
 import FlightReceipt from "./flight-receipt";
 import {RequestOpts, RequestPayload, RemotePromise} from "../interfaces";
+import buildPromiseResolver, {PromiseResolver} from "../util/promise-resolver";
+
 
 const kvid = require('kvid');
 
@@ -13,12 +15,13 @@ const DefaultRequestOpts = {
 export default class RemoteRequest {
   private requestOpts!: RequestOpts;
   private _receipt?: FlightReceipt;
+  private readonly _requestResolver: PromiseResolver;
   readonly nodejsCallback?: (...args: any[]) => void;
   readonly methodName: string;
   readonly userArgs: any[];
   readonly requestId: string;
   private _payload?: RequestPayload;
-
+  private _wasSent = false;
 
   constructor(methodName: string, userArgs: any[], requestOpts: RequestOpts) {
     if (typeof userArgs[userArgs.length - 1] === 'function') {
@@ -27,6 +30,8 @@ export default class RemoteRequest {
     this.methodName = methodName;
     this.userArgs = userArgs;
     this.requestId = kvid(12);
+
+    this._requestResolver = buildPromiseResolver();
     this.opts(Object.assign({}, DefaultRequestOpts, requestOpts));
 
     this._initTimeout();
@@ -65,6 +70,11 @@ export default class RemoteRequest {
     }
   }
 
+  markAsSent(): void {
+    this._wasSent = true;
+    this._requestResolver.resolve();
+  }
+
   responseReceived(error: any, ...result: any[]): void {
     this._ensureFlightReceipt()._remoteResponseReceived(error, ...result);
   }
@@ -74,7 +84,16 @@ export default class RemoteRequest {
       throw new Error('Cannot get receipt before request data initialized');
     }
     if (!this._receipt) {
-      this._receipt = new FlightReceipt(this._payload, this.nodejsCallback);
+      this._receipt = new FlightReceipt({
+        payload: this._payload,
+        nodejsCallback: this.nodejsCallback,
+        promiseSent: this._requestResolver.promise,
+        updateRequestOpts: (opts: RequestOpts) => {
+          if (this._wasSent) {
+            throw new Error('RPC request was already sent');
+          }
+        }
+      });
       const timeout = this.requestOpts.timeout;
       if (typeof timeout === 'number' && timeout > 0) {
         this._receipt.updateTimeout(timeout);

@@ -47,15 +47,20 @@ export default class Router {
   }
 
   sendRemoteRequest(req: RemoteRequest): RemotePromise<any> {
-    if (!this.transport) {
-      throw new Error('Rpc transport not set up');
-    }
     if (req.isRsvp()) {
       this._pendingRequests[req.requestId] = req;
     }
     const requestPayload = req.buildPayload(this._basePayloadData());
-    this.transport.sendMessage(requestPayload);
-    return req.flightReceipt() as RemotePromise<any>;
+    const receipt = req.flightReceipt();
+    setTimeout(() => { // using nextTick so receipt will be able to update requestOpts like rsvp before it's already sent
+      if (this.transport) {
+        req.markAsSent();
+        this.transport.sendMessage(requestPayload);
+      } else {
+        throw new Error('Rpc transport not set up');
+      }
+    }, 0);
+    return receipt as RemotePromise<any>;
   }
 
   checkConnectionStatus(opts=<ConnectionStatusOpts>{}): Promise<ConnectionStatus> {
