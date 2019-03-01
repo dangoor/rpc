@@ -1,13 +1,12 @@
 import RemoteRequest from "./remote-request";
-import {IRpcTransport, IDict, IRpcOpts, IConnectionStatusOpts, IConnectionStatus} from "../rpc-core";
-import FlightReceipt, {RemotePromise} from "./flight-receipt";
+import FlightReceipt from "./flight-receipt";
 import {buildTransport} from "./transport-construction";
+import {IDict, RequestPayload, ResponsePayload, RemotePromise, RpcOpts, RpcTransport, ConnectionStatus, ConnectionStatusOpts} from "../interfaces";
 
 
 const Protocol = 'WranggleRpc-1';
 
-
-interface CommonPayload {
+export interface CommonPayload {
   protocol: string;
   senderId: string;
   channel: string;
@@ -15,29 +14,18 @@ interface CommonPayload {
   transportMeta: IDict<any>;
   // perhaps add option: forEndpoint?: string;
 }
-export interface IRequestPayload extends CommonPayload {
-  requestId: string;
-  userArgs: any[];
-  rsvp: boolean;
-}
-export interface IResponsePayload extends CommonPayload {
-  respondingTo: string;
-  error?: any;
-  responseArgs?: any[];
-}
-
 interface IRouterOpts {
   onValidatedRequest: (methodName: string, userArgs: any[]) => Promise<any>;
 }
 
-type PreparseFilter = (rawPayload: IRequestPayload | IResponsePayload) => boolean | IRequestPayload | IResponsePayload;
+type PreparseFilter = (rawPayload: RequestPayload | ResponsePayload) => boolean | RequestPayload | ResponsePayload;
 
 export default class Router {
   private _pendingRequests = <IDict<RemoteRequest>>{};
   private _finishedRequestIds = new Set<string>(); // todo: @wranggle/rotating-cache to clear/expire (not very big but a memory leak as written.)
-  private transport?: IRpcTransport | void;
+  private transport?: RpcTransport | void;
   private _stopped = false;
-  private _rootOpts = <Partial<IRpcOpts>>{};
+  private _rootOpts = <Partial<RpcOpts>>{};
   private _onValidatedRequest: (methodName: string, userArgs: any[]) => Promise<any>;
   private _preparseFilters = <PreparseFilter[]>[];
 
@@ -45,7 +33,7 @@ export default class Router {
     this._onValidatedRequest = opts.onValidatedRequest;
   }
 
-  useTransport(transportOpts: IRpcTransport | object | string) {
+  useTransport(transportOpts: RpcTransport | object | string) {
     const transport = this.transport = buildTransport(transportOpts);
     transport && transport.listen(this._onMessage.bind(this));
     // todo: send handshake message?
@@ -58,7 +46,7 @@ export default class Router {
     }
   }
 
-  sendRemoteRequest(req: RemoteRequest): RemotePromise<any> | FlightReceipt {
+  sendRemoteRequest(req: RemoteRequest): RemotePromise<any> {
     if (!this.transport) {
       throw new Error('Rpc transport not set up');
     }
@@ -67,17 +55,17 @@ export default class Router {
     }
     const requestPayload = req.buildPayload(this._basePayloadData());
     this.transport.sendMessage(requestPayload);
-    return req.flightReceipt();
+    return req.flightReceipt() as RemotePromise<any>;
   }
 
-  checkConnectionStatus(opts=<IConnectionStatusOpts>{}): Promise<IConnectionStatus> {
+  checkConnectionStatus(opts=<ConnectionStatusOpts>{}): Promise<ConnectionStatus> {
     // todo: implement (do ping-pong check, making sure router does not call onValidatedRequest)
     // do not Reject for timeout, just mark data as bad connection. (Default timeout? 500?)
     // some data to include: isConnected; response time; lastMessageReceivedAt; pingPongResponseTime; endpoint data (senderId, protocol, channel) for local and for remote; timestamp;
     return Promise.resolve({ todo: 'implement this' });
   }
 
-  routerOpts(opts: Partial<IRpcOpts>) {
+  routerOpts(opts: Partial<RpcOpts>) {
     this._rootOpts = Object.assign(this._rootOpts, opts);
     opts.transport && this.useTransport(opts.transport);
     if (typeof opts.preparseAllIncomingMessages === 'function') {
@@ -123,13 +111,13 @@ export default class Router {
       }
     });
     if (parsedPayload.requestId) {
-      this._receiveRequest(parsedPayload as IRequestPayload);
+      this._receiveRequest(parsedPayload as RequestPayload);
     } else if (parsedPayload.respondingTo) {
-      this._receiveResponse(parsedPayload as IResponsePayload);
+      this._receiveResponse(parsedPayload as ResponsePayload);
     }
   }
 
-  private _receiveRequest(payload: IRequestPayload): void {
+  private _receiveRequest(payload: RequestPayload): void {
     const requestId = payload.requestId;
     if (this._finishedRequestIds.has(requestId)) {
       return; // warn/error of duplicate message?
@@ -140,7 +128,7 @@ export default class Router {
       .catch((reason: any) => this._handleRsvp(payload, reason, []));
   }
 
-  private _handleRsvp(requestPayload: IRequestPayload, error: any, responseArgs: any[] | void): void {
+  private _handleRsvp(requestPayload: RequestPayload, error: any, responseArgs: any[] | void): void {
     if (!requestPayload.rsvp) {
       return; // todo: log/debug option
     }
@@ -153,11 +141,11 @@ export default class Router {
       error, responseArgs,
       senderId: this.senderId,
       respondingTo: requestId,
-    }) as IResponsePayload;
+    }) as ResponsePayload;
     this.transport.sendMessage(response);
   }
 
-  private _receiveResponse(response: IResponsePayload): void {
+  private _receiveResponse(response: ResponsePayload): void {
     const requestId = response.respondingTo;
     const req = this._pendingRequests[requestId];
     if (!req || !req.isRsvp()) { // todo: log/warn?
@@ -167,7 +155,7 @@ export default class Router {
     req.responseReceived(response.error, ...(response.responseArgs || []));
   }
 
-  private _basePayloadData(): Partial<IRequestPayload | IResponsePayload> {
+  private _basePayloadData(): Partial<RequestPayload | ResponsePayload> {
     const { channel, senderId } = this;
     return {
       channel, senderId,

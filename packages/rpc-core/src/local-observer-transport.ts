@@ -1,14 +1,17 @@
 import {EventEmitter} from "events"; 
-import {IRpcTransport} from "./rpc-core";
-import {IRequestPayload, IResponsePayload} from "./internals/router";
+import {RequestPayload, ResponsePayload, RpcTransport} from "./interfaces";
 
 
-export interface ILocalObserverTransportOpts {
+export interface LocalObserverTransportOpts {
   messageEventName: string;
 }
 const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'
 };
+
+export declare abstract class LocalObserverTransport {
+  protected constructor(eventEmitter: EventEmitter, opts: Partial<LocalObserverTransportOpts>);
+}
 
 /**
  * This is mostly for internal testing but does have a use/role in production, as syntactical sugar for events.
@@ -17,13 +20,13 @@ const DefaultOpts = {
  *
  * 
  */
-export default class LocalObserverTransport implements IRpcTransport {
+export default class LocalObserverRpcTransport implements RpcTransport, LocalObserverRpcTransport {
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;
-  private _eventListener?: (payload: IRequestPayload | IResponsePayload) => void;
+  private _eventListener?: (payload: RequestPayload | ResponsePayload) => void;
 
-  constructor(eventEmitter: EventEmitter, opts=<Partial<ILocalObserverTransportOpts>>{}) {
+  constructor(eventEmitter: EventEmitter, opts=<Partial<LocalObserverTransportOpts>>{}) {
     if (!_isEventEmitter(eventEmitter)) {
       console.error('LocalObserverTransport expecting an EventEmitter for its first param. Got:', eventEmitter);
       throw new Error('InvalidArgument constructing LocalObserverTransport');
@@ -33,9 +36,9 @@ export default class LocalObserverTransport implements IRpcTransport {
     this.eventName = opts.messageEventName || DefaultOpts.messageEventName;
   }
 
-  listen(handler: (payload: IRequestPayload | IResponsePayload) => void): void {
+  listen(handler: (payload: RequestPayload | ResponsePayload) => void): void {
     this._removeExistingListener();
-    this._eventListener = (payload: IRequestPayload | IResponsePayload) => {
+    this._eventListener = (payload: RequestPayload | ResponsePayload) => {
       if (!this._isStopped) {
         handler(payload);
       }
@@ -43,7 +46,7 @@ export default class LocalObserverTransport implements IRpcTransport {
     this.observer.on(this.eventName, this._eventListener);
   }
 
-  sendMessage(payload: IRequestPayload | IResponsePayload): void {
+  sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (!this._isStopped) {
       this.observer.emit(this.eventName, payload);
     }

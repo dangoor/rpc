@@ -1,4 +1,4 @@
-import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/local-observer-transport';
+import LocalObserverTransport, {LocalObserverTransportOpts} from '../../src/local-observer-transport';
 import {EventEmitter} from 'events';
 import {waitMs} from "./time-support";
 import {IAnyAddedHandler, IFakeConnection, mockConnection, mockEndpoint} from "./mock-endpoint-support";
@@ -47,7 +47,7 @@ export function fakeFixturedConnection_1(): IFakeConnection<IFakeRemoteDelegate_
   });
 }
 
-export function buildLocalObserverTransport(opts=<Partial<ILocalObserverTransportOpts>>{}) {
+export function buildLocalObserverTransport(opts=<Partial<LocalObserverTransportOpts>>{}) {
   return new LocalObserverTransport(new EventEmitter(), opts);
 }
 

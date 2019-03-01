@@ -1,5 +1,5 @@
-import {IRpcTransport} from "rpc-core/src/rpc-core";
-import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
+import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {RequestPayload} from "rpc-core/src/interfaces";
 
 
 type WindowRef = any;
@@ -47,12 +47,12 @@ export interface IPostmessageTransportOpts {
 }
 
 
-export default class PostmessageTransport implements IRpcTransport {
+export default class PostmessageTransport implements RpcTransport {
   private _sendingWindow: WindowRef;
   private _receivingWindow: WindowRef;
   private _opts: IPostmessageTransportOpts;
   private _isStopped = false;
-  private _windowEventListener?: (payload: IRequestPayload | IResponsePayload) => void;
+  private _windowEventListener?: (payload: RequestPayload | ResponsePayload) => void;
 
   constructor(opts: IPostmessageTransportOpts) {
     const sendingWindow = opts.sendingWindow || opts.targetWindow;
@@ -71,7 +71,7 @@ export default class PostmessageTransport implements IRpcTransport {
     this._opts = opts;
   }
 
-  listen(rpcHandler: (payload: (IRequestPayload | IResponsePayload)) => void): void {
+  listen(rpcHandler: (payload: (RequestPayload | ResponsePayload)) => void): void {
     this._removeExistingListener();
     // @ts-ignore
     let shouldReceive = this._opts.shouldReceive || global.location.origin;
@@ -95,7 +95,7 @@ export default class PostmessageTransport implements IRpcTransport {
     this._receivingWindow.addEventListener('message', this._windowEventListener);
   }
 
-  sendMessage(payload: IRequestPayload | IResponsePayload): void {
+  sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (this._isStopped) {
       return;
     }

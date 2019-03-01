@@ -1,4 +1,4 @@
-import RequestHandler, {MissingMethodErrorCode} from "../../src/internals/request-handler";
+import RequestHandler, {MissingMethodErrorCode} from "../../src/internal/request-handler";
 import {waitMs} from "../test-support/time-support";
 
 

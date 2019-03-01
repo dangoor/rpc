@@ -1,23 +1,24 @@
-import LocalObserverTransport from '../src/local-observer-transport';
-import {IRequestPayload, IResponsePayload} from "../src/internals/router";
+import LocalObserverTransport from 'rpc-core/src/local-observer-transport';
+import {RequestPayload} from "rpc-core/src/interfaces";
+import {ResponsePayload} from "rpc-core/src/interfaces";
 const EventEmitter = require('events');
 
 
 describe('@wranggle/rpc-core/local-observer-transport', () => {
-  let testData;
+  let testData: any;
 
   beforeEach(() => {
     testData = null;
   });
 
-  const testMessageHandler = (payload: IRequestPayload | IResponsePayload) => {
+  const testMessageHandler = (payload: RequestPayload | ResponsePayload) => {
     testData = payload;
   };
 
   test('sending itself messages', () => {
     const transport = new LocalObserverTransport(new EventEmitter());
     transport.listen(testMessageHandler);
-    // @ts-ignore // todo: mock IRequestPayload
+    // @ts-ignore // todo: mock RequestPayload
     transport.sendMessage({ mockNeeded: true });
     expect(testData).not.toBe(null);
     expect(testData.mockNeeded).toBeTruthy();

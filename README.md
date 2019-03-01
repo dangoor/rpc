@@ -39,7 +39,7 @@ Of course, the remote endpoint needs to declare the method call requests it will
  
 ```
 import WranggleRpc from '@wranggle/rpc';
-const rpc = new WranggleRpc('chrome'); // note: in most cases we'd use additional transport options here. See ChromeTransport below. 
+const rpc = new WranggleRpc('chrome'); // note: in most cases we'd use additional transport options here. See BrowserExtensionTransport below. 
 
 rpc.addRequestHandlerDelegate(userPrefs);    
 rpc.addRequestHandler(takeScreenshot, someFunctionThatUsesChromeApi);

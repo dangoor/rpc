@@ -1,6 +1,7 @@
-import {IDict, IRpcTransport} from "../rpc-core";
+import {RpcTransport, IDict} from "../interfaces";
 
-type TransportFactory = (opts: any) => IRpcTransport;
+
+type TransportFactory = (opts: any) => RpcTransport;
 const transportFactoryByType = <IDict<TransportFactory>>{};
 
 export function registerTransport(transportType: string, transportFactory: TransportFactory): void {
@@ -8,7 +9,7 @@ export function registerTransport(transportType: string, transportFactory: Trans
 }
 
 
-export function buildTransport(val: any): IRpcTransport | void{
+export function buildTransport(val: any): RpcTransport | void{
   if (!val) {
     throw new Error('Invalid transport options');
   }
@@ -17,7 +18,7 @@ export function buildTransport(val: any): IRpcTransport | void{
   }
   let transport;
   if (_isTransport(val)) {
-    transport = val as IRpcTransport;
+    transport = val as RpcTransport;
   } else {
     let transportType, transportOpts;
 

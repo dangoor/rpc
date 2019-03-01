@@ -1,3 +1,6 @@
+const path = require('path');
+const packageDir = path.resolve(__dirname, 'packages');
+
 module.exports = {
   clearMocks: true,
   globals: {
@@ -7,17 +10,15 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'js'],
   // notify: true,
-  notifyMode: 'always',
-  roots: ['<rootDir>packages'],
+  notifyMode: 'failure', // https://jestjs.io/docs/en/configuration.html#notifymode-string
+  rootDir: packageDir,
+  // roots: ['<rootDir>packages'],
   testMatch: ['**/__tests__/*.+(ts|js)', '**/*.test.+(ts|js)'],
   transform: {
     '^.+\\.(ts)$': 'ts-jest',
   },
-  // moduleNameMapper: {
-  //   "^packages/(.*)": "<rootDir>/../packages/$1",
-  // },
-  // moduleDirectories: [
-  //   "node_modules",
-  //   "packages"
-  // ],
+  moduleDirectories: [
+    "node_modules",
+    packageDir,
+  ],
 };

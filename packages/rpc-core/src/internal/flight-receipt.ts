@@ -1,58 +1,34 @@
-import {IRequestPayload} from "./router";
+import {RequestInfo, RequestPayload, RemotePromise, RequestStatus} from "../interfaces";
+
 const { composeExtendedPromise } = require('../util/composition-util.js');
 
 
-interface IRequestInfo {
-  requestId: string;
-  requestedAt: Date;
-  completedAt?: Date;
-  status: Status;
-  // todo: methodName and args
-}
-
-export interface RemotePromise<T> extends Promise<T> {
-  isPending(): boolean;
-  info(): IRequestInfo;
-  resolveNow(...results: any[]): void;
-  rejectNow(reason: any): void;
-}
-
 const TimeoutErrorCode = 'RemoteMethodTimeoutError'; // todo: to constants or custom error
 
-export enum Status {
-  Pending = 'Pending',
-  RemoteError = 'RemoteError',
-  RemoteResult = 'RemoteResult',
-  ForcedError = 'ForcedError',
-  ForcedResult = 'ForcedResult',
-  TimeoutError = 'TimeoutError',
-  SkipRsvp = 'SkipRsvp',
-}
-
 export default class FlightReceipt {
-  private readonly requestPayload: IRequestPayload;
+  private readonly requestPayload: RequestPayload;
   private readonly _responseResolver: IResponseResolver;
   private readonly nodejsCallback!: void | ((...args: any[]) => void);
   private readonly requestedAt: number;
   private completedAt?: number;
-  private status = Status.Pending;
+  private status = RequestStatus.Pending;
   private _timer?: number | null;
 
-constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) => void) {
+constructor(requestPayload: RequestPayload, nodejsCallback?: (...args: any[]) => void) {
     this.requestPayload = requestPayload;
     this.nodejsCallback = nodejsCallback;
     this.requestedAt = Date.now();
     this._responseResolver = this._initResponseResolver();
     if (this.rsvp === false) {
-      this._markResolution(Status.SkipRsvp, null);
+      this._markResolution(RequestStatus.SkipRsvp, null);
     }
   }
 
   isPending(): boolean {
-    return this.status === Status.Pending;
+    return this.status === RequestStatus.Pending;
   }
 
-  info(): IRequestInfo {
+  info(): RequestInfo {
     const { requestedAt, completedAt, status } = this;
     return { ...this.requestPayload,
       requestedAt: new Date(requestedAt),
@@ -62,12 +38,12 @@ constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) =
   }
 
   resolveNow(...results: any[]): void {
-    this._markResolution(Status.ForcedResult, null, ...results);
+    this._markResolution(RequestStatus.ForcedResult, null, ...results);
     // todo: _nodejsCallback case
   }
 
   rejectNow(reason: any): void {
-    this._markResolution(Status.ForcedError, reason);
+    this._markResolution(RequestStatus.ForcedError, reason);
     // todo: _nodejsCallback case
   }
 
@@ -77,7 +53,7 @@ constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) =
     }
     if (typeof ms === 'number' && ms > 0) {
       // @ts-ignore
-      this._timer = setTimeout(() => this._markResolution(Status.TimeoutError, TimeoutErrorCode), ms);
+      this._timer = setTimeout(() => this._markResolution(RequestStatus.TimeoutError, TimeoutErrorCode), ms);
     }
   }
 
@@ -93,7 +69,7 @@ constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) =
   }
 
   _remoteResponseReceived(error: any, ...result: any[]): void {
-    this._markResolution(error ? Status.RemoteError : Status.RemoteResult, error, ...result);
+    this._markResolution(error ? RequestStatus.RemoteError : RequestStatus.RemoteResult, error, ...result);
   }
 
   _initResponseResolver(): IResponseResolver {
@@ -127,7 +103,7 @@ constructor(requestPayload: IRequestPayload, nodejsCallback?: (...args: any[]) =
     // also: readonly [Symbol.toStringTag]: "Promise";
   }
 
-  private _markResolution(status: Status, error: any, ...result: any[]): void {
+  private _markResolution(status: RequestStatus, error: any, ...result: any[]): void {
     if (!this.isPending()) {
       return; // warn/error/throw if resolved more than once? Maybe only if forced locally? (when you prob want to ignore the late-arriving remote response.)
     }

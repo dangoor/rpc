@@ -1,7 +1,8 @@
-import LocalObserverTransport, {ILocalObserverTransportOpts} from '../../src/local-observer-transport';
-import WranggleRpc, { IDict, IRpcOpts} from '../../src/rpc-core';
+import LocalObserverTransport, {LocalObserverTransportOpts} from '../../src/local-observer-transport';
+import WranggleRpc from '../../src/rpc-core';
 import {EventEmitter} from 'events';
-import {IDelegateOpts} from "../../src/internals/request-handler";
+import {DelegateOpts} from "../../src/interfaces";
+import {IDict, RpcOpts} from "rpc-core/src/interfaces";
 
 
 export interface IFakeConnection<T> {
@@ -15,10 +16,10 @@ export interface IMockEndpointOpts {
   observer?: EventEmitter;
   addFixturingGroup?: string;
 
-  rpcOpts?: Partial<IRpcOpts>;
+  rpcOpts?: Partial<RpcOpts>;
   requestHandlers?: IDict<(...args: any[]) => any>;
   requestDelegate?: object;
-  requestDelegateOpts?: IDelegateOpts;
+  requestDelegateOpts?: DelegateOpts;
 }
 
 export interface IMockEndpoint<T> {
@@ -67,7 +68,7 @@ export function mockConnection<T>(opts=<IMockConnectionOpts<T>>{}): IFakeConnect
 }
 
 
-export function buildLocalObserverTransport(opts=<Partial<ILocalObserverTransportOpts>>{}) {
+export function buildLocalObserverTransport(opts=<Partial<LocalObserverTransportOpts>>{}) {
   return new LocalObserverTransport(new EventEmitter(), opts);
 }
 

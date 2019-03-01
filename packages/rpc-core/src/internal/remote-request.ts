@@ -1,22 +1,8 @@
-import FlightReceipt, {RemotePromise} from "./flight-receipt";
-import {IRequestPayload} from "./router";
+import FlightReceipt from "./flight-receipt";
+import {RequestOpts, RequestPayload, RemotePromise} from "../interfaces";
+
 const kvid = require('kvid');
 
-
-export interface IRequestOpts {
-  /**
-   * Time in ms. If set to a positive number, the request will result in a TimeoutError should it not receive a response in the specified time
-   * Default -1, no timeout.
-   */
-  timeout?: number;
-
-  /**
-   * When true, expect a response from the remote RPC instance. A failure timeout will be set if that option was set.
-   * When false, the request is immediately assumed to have succeeded or failed, based on if the rpc connection was established
-   * or not.
-   */
-  rsvp?: boolean;
-}
 
 const DefaultRequestOpts = {
   timeout: -1,
@@ -25,16 +11,16 @@ const DefaultRequestOpts = {
 
 
 export default class RemoteRequest {
-  private requestOpts!: IRequestOpts;
+  private requestOpts!: RequestOpts;
   private _receipt?: FlightReceipt;
   readonly nodejsCallback?: (...args: any[]) => void;
   readonly methodName: string;
   readonly userArgs: any[];
   readonly requestId: string;
-  private _payload?: IRequestPayload;
+  private _payload?: RequestPayload;
 
 
-  constructor(methodName: string, userArgs: any[], requestOpts: IRequestOpts) {
+  constructor(methodName: string, userArgs: any[], requestOpts: RequestOpts) {
     if (typeof userArgs[userArgs.length - 1] === 'function') {
       this.nodejsCallback = userArgs.pop();
     }
@@ -46,7 +32,7 @@ export default class RemoteRequest {
     this._initTimeout();
   }
 
-  opts(requestOpts: IRequestOpts): void {
+  opts(requestOpts: RequestOpts): void {
     this.requestOpts = Object.assign(this.requestOpts || {}, requestOpts);
   }
 
@@ -54,18 +40,18 @@ export default class RemoteRequest {
     return !!this.requestOpts.rsvp;
   }
 
-  buildPayload(endpointBaseData: Partial<IRequestPayload>): IRequestPayload {
+  buildPayload(endpointBaseData: Partial<RequestPayload>): RequestPayload {
     const { requestId, methodName, userArgs } = this;
     const payload = Object.assign(endpointBaseData, {
       requestId, methodName, userArgs,
       rsvp: this.isRsvp(),
       transportMeta: {},
-    }) as IRequestPayload;
+    }) as RequestPayload;
     this._payload = payload;
     return payload;
   }
 
-  dataForPayload(): Partial<IRequestPayload> {
+  dataForPayload(): Partial<RequestPayload> {
     const { requestId, methodName, userArgs } = this;
     return { requestId, methodName, userArgs, rsvp: this.isRsvp() };
   }

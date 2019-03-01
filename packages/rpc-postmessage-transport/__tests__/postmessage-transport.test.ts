@@ -1,7 +1,8 @@
-import WranggleRpc, {IDict} from 'rpc-core/src/rpc-core';
-import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
+import WranggleRpc from 'rpc-core/src/rpc-core';
+import {RequestPayload} from "rpc-core/src/interfaces";
 import PostmessageTransport from "../src/postmessage-transport";
 import { EventEmitter } from 'events';
+import {IDict, ResponsePayload} from "@wranggle/rpc-core/src/interfaces";
 
 
 const SomeOrigin = 'https://test.local';
@@ -25,7 +26,7 @@ describe('@wranggle/rpc-postmessage-transport', () => {
         sendToOrigin: SomeOrigin,
         shouldReceive: shouldReceiveOpt,
       });
-      transport.listen((payload: IRequestPayload | IResponsePayload) => {
+      transport.listen((payload: RequestPayload | ResponsePayload) => {
         lastMessage = payload;
       });
       return transport;

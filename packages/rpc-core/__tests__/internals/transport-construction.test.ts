@@ -1,5 +1,6 @@
-import WranggleRpc, {IRpcTransport} from '../../src/rpc-core';
-import {IRequestPayload, IResponsePayload} from "../../src/internals/router";
+import WranggleRpc from '../../src/rpc-core';
+import {RequestPayload} from "../../src/interfaces";
+import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 
 
 describe('@wranggle/rpc-core/transport-construction', () => {
@@ -65,7 +66,7 @@ describe('@wranggle/rpc-core/transport-construction', () => {
 
 });
 
-class SomeTransport implements IRpcTransport {
+class SomeTransport implements RpcTransport {
   constructorOpts: any;
   isSomeTransport = true;
 
@@ -73,10 +74,10 @@ class SomeTransport implements IRpcTransport {
     this.constructorOpts = opts;
   }
 
-  listen(onMessage: (payload: (IRequestPayload | IResponsePayload)) => void): void {
+  listen(onMessage: (payload: (RequestPayload | ResponsePayload)) => void): void {
   }
 
-  sendMessage(payload: IRequestPayload | IResponsePayload): void {
+  sendMessage(payload: RequestPayload | ResponsePayload): void {
   }
 
   stopTransport(): void {

@@ -1,5 +1,5 @@
 // import WranggleRpc from '@wranggle/rpc-core';
-import ChromeTransport from '../src/browser-extension-transport';
+import BrowserExtensionTransport from '../src/browser-extension-transport';
 import { fakeSender, FakeChromeExtensionId } from './test-support/fake-sender-support';
 
 jest.mock('../src/chrome-manifest-2-api.js', () => _setupCustomMock());
@@ -28,10 +28,10 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
     });
   });
 
-  const fakeSend = (transport: ChromeTransport, payload: any) => {
+  const fakeSend = (transport: BrowserExtensionTransport, payload: any) => {
     transport.sendMessage(payload);
   };
-  const fakeReceive = (transport: ChromeTransport, payload: any, sender: any) => {
+  const fakeReceive = (transport: BrowserExtensionTransport, payload: any, sender: any) => {
     if (!fakeChromeListener) {
       transport.listen((payload: any) => lastReceived = payload);
     }
@@ -41,11 +41,11 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
 
   test('error if not in a chromium-compatible extension', () => {
     _setMockFunction('hasChromeExtensionApi', () => false);
-    expect(() => new ChromeTransport({})).toThrow(/extension/);
+    expect(() => new BrowserExtensionTransport({})).toThrow(/extension/);
   });
 
   test('sending from main to specified tab', () => {
-    const transport = new ChromeTransport({ forTabId: 5 });
+    const transport = new BrowserExtensionTransport({ forTabId: 5 });
     expect(!!lastSend).toBe(false);
     fakeSend(transport, { hello: 'niceTab' });
     expect(lastSend.tabId).toBe(5);
@@ -54,25 +54,25 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
   });
 
   test('sending from tab to main', () => {
-    const transport = new ChromeTransport({ forTabId: 4 });
+    const transport = new BrowserExtensionTransport({ forTabId: 4 });
     fakeReceive(transport, { some: 'info'}, fakeSender(4));
     expect(lastReceived.some).toBe('info')
   });
 
   test('ignores messages from other tabs', () => {
-    const transport = new ChromeTransport({ forTabId: 4 });
+    const transport = new BrowserExtensionTransport({ forTabId: 4 });
     fakeReceive(transport, { some: 'info'}, fakeSender(6));
     expect(!!lastReceived).toBe(false)
   });
 
   test('ignores messages from other extensions', () => {
-    const transport = new ChromeTransport({ forTabId: 4 });
+    const transport = new BrowserExtensionTransport({ forTabId: 4 });
     fakeReceive(transport, { some: 'info'}, fakeSender(4, 'otherExtensionId'));
     expect(!!lastReceived).toBe(false)
   });
 
   test('requires messages pass custom permitMessage when provided', () => {
-    const transport = new ChromeTransport({
+    const transport = new BrowserExtensionTransport({
       forTabId: 4,
       permitMessage: (payload, sender) => payload.transportMeta.allow === 'ok',
     });

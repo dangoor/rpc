@@ -1,13 +1,13 @@
-import FlightReceipt, {RemotePromise, Status, TimeoutErrorCode} from "../../src/internals/flight-receipt";
+import FlightReceipt, {TimeoutErrorCode} from "../../src/internal/flight-receipt";
 import {waitMs} from "../test-support/time-support";
-import {IRequestPayload} from "../../src/internals/router";
+import {RemotePromise, RequestPayload, RequestStatus} from "../../src/interfaces";
 import {buildFakeRequestPayload} from "../test-support/fake-payload-support";
 
 
 describe('@wranggle/rpc-core/flight-receipt', () => {
 
 
-  const buildFlightReceipt = (requestPayload=<Partial<IRequestPayload>>{}) =>
+  const buildFlightReceipt = (requestPayload=<Partial<RequestPayload>>{}) =>
     new FlightReceipt({ ...buildFakeRequestPayload('fakeMethod'), ...requestPayload });
 
 
@@ -30,7 +30,8 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
     });
 
     describe('provides public FlightReceipt methods', () => {
-      let remotePromise, flightReceiptInstance;
+      let remotePromise: RemotePromise<any>;
+      let flightReceiptInstance: FlightReceipt;
 
       const mockResolve = (result?: any) => flightReceiptInstance._remoteResponseReceived(null, result);
 
@@ -62,13 +63,13 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
 
       test('info', () => {
         let info = remotePromise.info();
-        expect(info.status).toBe(Status.Pending);
+        expect(info.status).toBe(RequestStatus.Pending);
         expect(info.requestId).toBeDefined();
         expect(info.requestedAt).toBeDefined(); // to be date
         expect(info.completedAt).toBeUndefined();
         mockResolve();
         info = remotePromise.info();
-        expect(info.status).toBe(Status.RemoteResult);
+        expect(info.status).toBe(RequestStatus.RemoteResult);
         expect(info.completedAt).toBeDefined();
       });
 
@@ -83,7 +84,7 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
         }
         expect(reason).toBe('testForceRejectingRemotePromise');
         expect(remotePromise.isPending()).toBe(false);
-        expect(remotePromise.info().status).toBe(Status.ForcedError);
+        expect(remotePromise.info().status).toBe(RequestStatus.ForcedError);
       });
 
       describe('timeouts', () => {
@@ -123,7 +124,7 @@ describe('@wranggle/rpc-core/flight-receipt', () => {
       const remotePromise = flightReceipt._decoratedPromise();
       await remotePromise;
       expect(remotePromise.isPending()).toBe(false);
-      expect(remotePromise.info().status).toBe(Status.SkipRsvp);
+      expect(remotePromise.info().status).toBe(RequestStatus.SkipRsvp);
     });
   });
 

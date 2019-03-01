@@ -1,9 +1,10 @@
-import {IRpcTransport} from "rpc-core/src/rpc-core";
-import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
+import {RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 const chromeApi = require('./chrome-manifest-2-api.js');
 
+type ChromeListener = (payload: (RequestPayload | ResponsePayload), sender: any) => void;
 
-export interface IChromeTransportOpts {
+
+export interface BrowserExtensionTransportOpts {
   /**
    * Shortcut to set both `sendToTabId` and `receiveFromTabId` options. Use this in the main extension (not the content script / tab)
    * when you want your WranggleRpc instance to communicate with only a single tab.
@@ -37,20 +38,19 @@ export interface IChromeTransportOpts {
    * An optional filter for ignoring incoming messages. Return true to accept message, anything else to reject.
    * @param payload
    */
-  permitMessage?: (payload: (IRequestPayload | IResponsePayload), chromeSender: any) => boolean;
+  permitMessage?: (payload: (RequestPayload | ResponsePayload), chromeSender: any) => boolean;
 }
 
-type ChromeListener = (payload: (IRequestPayload | IResponsePayload), sender: any) => void;
 
-export default class ChromeTransport implements IRpcTransport {
+export default class BrowserExtensionTransport implements RpcTransport {
   private _stopped = false;
-  private _opts: IChromeTransportOpts;
+  private _opts: BrowserExtensionTransportOpts;
   private readonly _isContentScript: boolean;
   private readonly _chromeExtensionId!: string;
   private _messageHandler?: ChromeListener;
 
 
-  constructor(opts=<IChromeTransportOpts>{}) {
+  constructor(opts=<BrowserExtensionTransportOpts>{}) {
     if (!chromeApi.hasChromeExtensionApi()) {
       throw new Error('Invalid environment: expecting a Chromium extension');
     }
@@ -60,7 +60,7 @@ export default class ChromeTransport implements IRpcTransport {
     this._opts = this._initOpts(opts);
   }
 
-  listen(onMessage: (payload: (IRequestPayload | IResponsePayload)) => void): void {
+  listen(onMessage: (payload: (RequestPayload | ResponsePayload)) => void): void {
     if (typeof onMessage !== 'function') {
       throw new Error('Invalid message handler');
     }
@@ -87,7 +87,7 @@ export default class ChromeTransport implements IRpcTransport {
     chromeApi.addMessageListener(this._messageHandler);
   }
 
-  sendMessage(payload: IRequestPayload | IResponsePayload): void {
+  sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (this._stopped) {
       return;
     }
@@ -107,7 +107,7 @@ export default class ChromeTransport implements IRpcTransport {
     this._messageHandler && chromeApi.removeMessageListener(this._messageHandler);
   }
 
-  _initOpts(opts: IChromeTransportOpts) {
+  _initOpts(opts: BrowserExtensionTransportOpts) {
     if (opts.skipExtensionIdCheck && typeof opts.permitMessage !== 'function') {
       throw new Error('When "skipExtensionIdCheck" is enabled, you must provide a custom "permitMessage" filter function');
     }

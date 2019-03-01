@@ -1,24 +1,24 @@
+import {RequestPayload, ResponsePayload} from "rpc-core/src/interfaces";
 const EventEmitter = require('events');
-import WranggleRpc from '@wranggle/rpc-core/src/rpc-core';
-import LocalObserverTransport from '@wranggle/rpc-core/src/local-observer-transport';
-import {IRequestPayload, IResponsePayload} from "@wranggle/rpc-core/src/internals/router";
-import RelayTransport from "../src/relay";
+import LocalObserverTransport from 'rpc-core/src/local-observer-transport';
+import Relay from "../src/relay";
+import WranggleRpc from "rpc-core/src/rpc-core";
 
 
 describe('@wranggle/rpc-relay', () => {
-  let leftRpc, rightRpc;
-  let leftTransport, rightTransport;
-  let relayTransport;
+  let leftRpc: WranggleRpc<any>, rightRpc: WranggleRpc<any>;
+  let leftTransport: LocalObserverTransport, rightTransport: LocalObserverTransport;
+  let relayTransport: Relay;
 
   const buildRpc = () => {
     leftTransport = new LocalObserverTransport(new EventEmitter(), { messageEventName: 'leftEvent' });
     rightTransport = new LocalObserverTransport(new EventEmitter(), { messageEventName: 'rightEvent' });
-    leftRpc = new WranggleRpc({ transport: leftTransport, senderId: 'fakeLeft' });
-    rightRpc = new WranggleRpc({ transport: rightTransport, senderId: 'fakeRight' });
+    leftRpc = new WranggleRpc<any>({ transport: leftTransport, senderId: 'fakeLeft' });
+    rightRpc = new WranggleRpc<any>({ transport: rightTransport, senderId: 'fakeRight' });
     _mockCrossoverMessaging(leftTransport, rightTransport);
     _mockCrossoverMessaging(rightTransport, leftTransport);
 
-    relayTransport = new RelayTransport({
+    relayTransport = new Relay({
       left: leftTransport,
       right: rightTransport,
       relayId: 'fakeMiddle'
@@ -49,7 +49,7 @@ describe('@wranggle/rpc-relay', () => {
 
 
 function _mockCrossoverMessaging(from: LocalObserverTransport, to: LocalObserverTransport) {
-  from.sendMessage = (payload: IRequestPayload | IResponsePayload) => {
+  from.sendMessage = (payload: RequestPayload | ResponsePayload) => {
     // @ts-ignore
     to.observer.emit(to.eventName, payload);
   };

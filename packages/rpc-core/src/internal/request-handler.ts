@@ -1,37 +1,12 @@
-import { IDict, IRpcOpts} from "../rpc-core";
+import {DelegateOpts, IDict, RpcOpts} from "../interfaces";
 
 
 interface IRequestHandlerDelegateHolder {
   delegate: object;
-  opts: IDelegateOpts;
+  opts: DelegateOpts;
 }
 
 const MissingMethodErrorCode = 'MethodNotFound'; // todo: move to constants or a custom error type
-
-export interface IDelegateOpts {
-
-  /**
-   * Ignores inherited methods, using Object.hasOwnProperty checks.
-   */
-  ignoreInherited?: boolean;
-
-  /**
-   * Ignores methods beginning with an underscore "_".
-   */
-  ignoreWithUnderscorePrefix?: boolean;
-
-  /**
-   * Custom filter to determine if it's ok to call a method on the delegate object. It is applied after the above
-   * built-in filters run/pass. When provided, the method runs if the filter returns `true`.
-   * @param delegate
-   * @param methodName
-   * @param methodArgs
-   */
-  shouldRun?: (delegate: object, methodName: string, ...methodArgs: any[]) => boolean;
-
-  context?: any;
-
-}
 
 const DefaultDelegateOpts = {
   ignoreWithUnderscorePrefix: true,
@@ -43,16 +18,16 @@ interface NamedRequestHandlerHolder {
   context: any;
 }
 export default class RequestHandler {
-  private _rootOpts=<Partial<IRpcOpts>>{};
+  private _rootOpts=<Partial<RpcOpts>>{};
   private _requestHandlerDelegateHolders=<IRequestHandlerDelegateHolder[]>[];
   private _namedRequestHandlerHolderByMethodName = <IDict<NamedRequestHandlerHolder>>{};
 
 
-  requestHandlerOpts(opts: Partial<IRpcOpts>) {
+  requestHandlerOpts(opts: Partial<RpcOpts>) {
     this._rootOpts = opts;
   }
 
-  addRequestHandlerDelegate(delegate: any, opts?: IDelegateOpts): void {
+  addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts): void {
     if (typeof delegate !== 'object') {
       throw new Error('Expecting an object containing request handlers');
     }

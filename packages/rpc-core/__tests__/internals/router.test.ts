@@ -1,7 +1,7 @@
-import Router, {IRequestPayload, IResponsePayload} from '../../src/internals/router';
-import RemoteRequest from '../../src/internals/remote-request';
+import Router from '../../src/internal/router';
+import RemoteRequest from '../../src/internal/remote-request';
 import {buildFakeRequestPayload, buildFakeResponsePayload, DefaultFakeChannel,} from "../test-support/fake-payload-support";
-import {IRpcTransport} from "../../src/rpc-core";
+import {RequestPayload, ResponsePayload, RpcTransport} from "../../src/interfaces";
 
 
 
@@ -11,7 +11,10 @@ describe('@wranggle/rpc-core/router', () => {
   describe('messages', () => {
     const FakeChannel = DefaultFakeChannel;
     const FakeLocalEndpoint = 'fakeLocalEndpoint01';
-    let transport, router, lastValidatedRequestReceived;
+    let transport: MockTransport;
+    let router: Router;
+    let lastValidatedRequestReceived: any;
+
 
     const receiveFakeRequest = (methodName: string, ...userArgs: any[]) =>
       transport.fakeReceive(Object.assign(buildFakeRequestPayload(methodName, ...userArgs), { channel: FakeChannel, senderId: 'stubbedRemoteSender' }));
@@ -42,7 +45,7 @@ describe('@wranggle/rpc-core/router', () => {
       test('proper payload data over transport', () => {
         router.sendRemoteRequest(new RemoteRequest('boo', [ 1, 2 ], {}));
         expect(transport.sent.length).toBe(1);
-        const payload = transport.sent[0];
+        const payload = transport.sent[0] as RequestPayload;
         const { requestId, channel, senderId, protocol, methodName, userArgs, rsvp } = payload;
         expect(requestId.length).toBe(12);
         expect(channel).toBe(FakeChannel);
@@ -83,12 +86,12 @@ describe('@wranggle/rpc-core/router', () => {
       test('send response when request handler resolves', async () => {
         receiveFakeRequest('someMethod', 'someArg');
         const { promise, resolve } = lastValidatedRequestReceived;
-        const pendingRequestId = transport.received[0].requestId;
+        const pendingRequestId = (transport.received[0] as RequestPayload).requestId;
         setTimeout(() => resolve('someResult'), 3);
         const val = await promise;
         expect(val).toBe('someResult');
         expect(transport.sent.length).toBe(1);
-        const payload = transport.sent[0];
+        const payload = transport.sent[0] as ResponsePayload;
         expect(payload.respondingTo).toBe(pendingRequestId);
         expect(payload.responseArgs).toEqual([ 'someResult' ]);
       });
@@ -96,7 +99,7 @@ describe('@wranggle/rpc-core/router', () => {
       test('send response when request handler rejects', async () => {
         receiveFakeRequest('someMethod', 'badArg');
         const { promise, reject } = lastValidatedRequestReceived;
-        const pendingRequestId = transport.received[0].requestId;
+        const pendingRequestId = (transport.received[0] as RequestPayload).requestId;
         setTimeout(() => reject('invalidArg'), 3);
         let error;
         try {
@@ -106,7 +109,7 @@ describe('@wranggle/rpc-core/router', () => {
         }
         expect(error).toBe('invalidArg');
         expect(transport.sent.length).toBe(1);
-        const payload = transport.sent[0];
+        const payload = transport.sent[0] as ResponsePayload;
         expect(payload.respondingTo).toBe(pendingRequestId);
         expect(payload.error).toEqual('invalidArg');
       });
@@ -161,11 +164,11 @@ describe('@wranggle/rpc-core/router', () => {
     describe('preparseAllIncomingMessages', () => {
       const RejectionAllFilter = (rawPayload: Payload) => false;
       const PassAllFilter = (rawPayload: Payload) => true;
-      const FakeSecurityTokenModificationFilter = (rawPayload: Payload): IRequestPayload | boolean => {
+      const FakeSecurityTokenModificationFilter = (rawPayload: Payload): RequestPayload | boolean => {
         if (!(<any>rawPayload).requestId) {
           return true;
         }
-        const payload = rawPayload as IRequestPayload;
+        const payload = rawPayload as RequestPayload;
         const securityToken = payload.userArgs.shift();
         return securityToken === 'expectedToken' ? payload : false;
       };
@@ -198,7 +201,7 @@ describe('@wranggle/rpc-core/router', () => {
 
 
     describe('ignoring other traffic on transport', () => {
-      const receiveMessage = (changes: Partial<IRequestPayload>) => transport.fakeReceive(Object.assign(buildFakeRequestPayload('someMethod', 'someArg'),
+      const receiveMessage = (changes: Partial<RequestPayload> | any) => transport.fakeReceive(Object.assign(buildFakeRequestPayload('someMethod', 'someArg'),
         { channel: FakeChannel, senderId: 'stubbedRemoteSender' }, changes));
 
       const wasValidated = () => !!lastValidatedRequestReceived;
@@ -233,8 +236,8 @@ describe('@wranggle/rpc-core/router', () => {
 
 });
 
-type Payload = IRequestPayload | IResponsePayload;
-class MockTransport implements IRpcTransport {
+type Payload = RequestPayload | ResponsePayload;
+class MockTransport implements RpcTransport {
   sent = <Payload[]>[];
   received = <Payload[]>[];
   _onMessage?: (payload: Payload) => void;

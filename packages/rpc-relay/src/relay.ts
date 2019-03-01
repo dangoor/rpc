@@ -1,42 +1,43 @@
-import {IRpcTransport} from "rpc-core/src/rpc-core";
-import {IRequestPayload, IResponsePayload} from "rpc-core/src/internals/router";
+import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {RequestPayload} from "rpc-core/src/interfaces";
 const kvid = require('kvid');
 
 
-export interface IRelayTransportOpts {
+export interface RelayOpts {
 
   /**
    * One of the two endpoints to bridge
    */
-  left: IRpcTransport;
+  left: RpcTransport;
 
   /**
    * One of the two endpoints to bridge
    */
-  right: IRpcTransport;
+  right: RpcTransport;
 
   /**
-   * Optional. Value used as payload's senderId. A random id will be used unless overriden here.
+   * Optional. A random id will be used unless overridden here.
+   * Value is added to payload transportMeta data, for debugging or potential examination by a custom transport.
    */
   relayId?: string;
 
 }
 
 
-export default class RelayTransport {
+export default class RelayTransports {
   private readonly _relayId: string;
-  private readonly _left: IRpcTransport;
-  private readonly _right: IRpcTransport;
+  private readonly _left: RpcTransport;
+  private readonly _right: RpcTransport;
 
-  constructor(opts: IRelayTransportOpts) {
+  constructor(opts: RelayOpts) {
     this._relayId = opts.relayId || kvid(10);
     this._left = opts.left;
     this._right = opts.right;
   }
 
   /**
-   * In the middle layer, you can instantiate and start the RelayTransport directly, without creating a WranggleRpc instance,
-   * since it does not make or respond to requests on its own.
+   * In the middle layer, you instantiate and start the Relay.
+   * When relaying, you do not create a WranggleRpc instance, since it does not make or respond to requests on its own.
    *
    */
   start() {
@@ -44,22 +45,13 @@ export default class RelayTransport {
     this._startRelay(this._right, this._left);
   }
 
-
-  // listen(unused: (payload: (IRequestPayload | IResponsePayload)) => void): void {
-  //   console.warn('RelayTransport does not need to be used on WranggleRpc directly. It can only relay, it cannot make its own remote requests or handle requests');
-  // }
-
-  // sendMessage(payload: IRequestPayload | IResponsePayload): void {
-  //   throw new Error('RelayTransport cannot make its own remote requests, it can only relay messages between other endpoints.')
-  // }
-
   stopTransport(): void {
     this._left.stopTransport();
     this._right.stopTransport();
   }
 
-  _startRelay(from: IRpcTransport, to: IRpcTransport): void {
-    from.listen((payload: IRequestPayload | IResponsePayload) => {
+  private _startRelay(from: RpcTransport, to: RpcTransport): void {
+    from.listen((payload: RequestPayload | ResponsePayload) => {
       payload.transportMeta.relays = (payload.transportMeta.relays || []).concat([ this._relayId ]);
       to.sendMessage(payload);
     });
