@@ -2,11 +2,12 @@
   "name": "@wranggle/rpc",
   "version": "0.1.0",
   "description": "Transparently call functions that live in other windows/processes using message-passing",
-  "types": "dist/types/rpc-full/src/wranggle-rpc.d.ts",
+  "types": "dist/types/wranggle-rpc.d.ts",
   "scripts": {
-    "build": "run-s clean tsc rollup",
+    "build": "run-s clean tsc tsc:unxkcd-types rollup",
     "rollup": "rollup -c",
     "tsc": "tsc",
+    "tsc:unxkcd-types": "./bin/unxkcd-types.js",
     "clean:dist": "rimraf dist/",
     "clean:out": "rimraf out/",
     "clean": "run-p clean:*"
