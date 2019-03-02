@@ -1,0 +1,35 @@
+{
+  "name": "@wranggle/rpc-electron-transport",
+  "version": "0.1.0",
+  "description": "WranggleRpc transport for Electron.js",
+  "scripts": {
+    "tsc": "tsc",
+    "test": "jest"
+  },
+  "author": "Jeff Ferber <jeff@wranggle.com>",
+  "main": "out/electron-transport.js",
+  "files": [
+    "out"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wranggle/rpc.git"
+  },
+  "devDependencies": {
+    "@wranggle/rpc-core": "^0.1.0"
+  },
+  "keywords": [
+    "wranggle-rpc",
+    "rpc",
+    "ipc",
+    "electron"
+  ],
+  "homepage": "https://github.com/wranggle/rpc#readme",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/wranggle/rpc/issues"
+  }
+}
