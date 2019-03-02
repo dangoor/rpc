@@ -7,15 +7,21 @@
     "test": "jest"
   },
   "author": "Jeff Ferber <jeff@wranggle.com>",
-  "homepage": "https://github.com/wranggle/rpc#readme",
-  "license": "Apache-2.0",
-  "main": "lib/postmessage-transport.js",
-  "directories": {
-    "lib": "lib",
-    "test": "__tests__"
-  },
+  "main": "out/postmessage-transport.js",
   "files": [
-    "lib"
+    "out"
+  ],
+  "devDependencies": {
+    "@types/node": "^11.9.5",
+    "@wranggle/rpc-core": "^0.1.0",
+    "ts-jest": "^24.0.0"
+  },
+  "dependencies": {},
+  "keywords": [
+    "wranggle-rpc",
+    "rpc",
+    "ipc",
+    "electron"
   ],
   "publishConfig": {
     "access": "public"
@@ -27,10 +33,6 @@
   "bugs": {
     "url": "https://github.com/wranggle/rpc/issues"
   },
-  "devDependencies": {
-    "@types/node": "^11.9.5",
-    "@wranggle/rpc-core": "^0.1.0",
-    "ts-jest": "^24.0.0"
-  },
-  "dependencies": {}
+  "homepage": "https://github.com/wranggle/rpc#readme",
+  "license": "Apache-2.0"
 }

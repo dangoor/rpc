@@ -1,6 +1,5 @@
-import LocalObserverTransport from 'rpc-core/src/local-observer-transport';
-import {RequestPayload} from "rpc-core/src/interfaces";
-import {ResponsePayload} from "rpc-core/src/interfaces";
+import LocalObserverTransport from '../src/local-observer-transport';
+import {RequestPayload, ResponsePayload} from "../src/interfaces";
 const EventEmitter = require('events');
 
 

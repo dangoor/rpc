@@ -24,7 +24,7 @@ export default class LocalObserverRpcTransport implements RpcTransport, LocalObs
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;
-  private _eventListener?: (payload: RequestPayload | ResponsePayload) => void;
+  private _payloadHandler?: (payload: RequestPayload | ResponsePayload) => void;
 
   constructor(eventEmitter: EventEmitter, opts=<Partial<LocalObserverTransportOpts>>{}) {
     if (!_isEventEmitter(eventEmitter)) {
@@ -38,12 +38,12 @@ export default class LocalObserverRpcTransport implements RpcTransport, LocalObs
 
   listen(handler: (payload: RequestPayload | ResponsePayload) => void): void {
     this._removeExistingListener();
-    this._eventListener = (payload: RequestPayload | ResponsePayload) => {
+    this._payloadHandler = (payload: RequestPayload | ResponsePayload) => {
       if (!this._isStopped) {
         handler(payload);
       }
     };
-    this.observer.on(this.eventName, this._eventListener);
+    this.observer.on(this.eventName, this._payloadHandler);
   }
 
   sendMessage(payload: RequestPayload | ResponsePayload): void {
@@ -58,7 +58,7 @@ export default class LocalObserverRpcTransport implements RpcTransport, LocalObs
   }
 
   _removeExistingListener() {
-    this._eventListener && this.observer.removeListener(this.eventName, this._eventListener);
+    this._payloadHandler && this.observer.removeListener(this.eventName, this._payloadHandler);
   }
 }
 

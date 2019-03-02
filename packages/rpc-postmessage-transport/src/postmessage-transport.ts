@@ -4,7 +4,7 @@ import {RequestPayload} from "rpc-core/src/interfaces";
 
 type WindowRef = any;
 
-export interface IPostmessageTransportOpts {
+export interface PostmessageTransportOpts {
   /**
    * Target window to use for both sending and receiving messages. If they are different, use the `sendingWindow` and
    * `receivingWindow` options.
@@ -50,11 +50,11 @@ export interface IPostmessageTransportOpts {
 export default class PostmessageTransport implements RpcTransport {
   private _sendingWindow: WindowRef;
   private _receivingWindow: WindowRef;
-  private _opts: IPostmessageTransportOpts;
+  private _opts: PostmessageTransportOpts;
   private _isStopped = false;
   private _windowEventListener?: (payload: RequestPayload | ResponsePayload) => void;
 
-  constructor(opts: IPostmessageTransportOpts) {
+  constructor(opts: PostmessageTransportOpts) {
     const sendingWindow = opts.sendingWindow || opts.targetWindow;
     if (!sendingWindow || typeof sendingWindow.postMessage !== 'function') {
       throw new Error('Expecting a browser window or contentWindow. Passed in value is missing "postMessage"');
