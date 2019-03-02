@@ -2,7 +2,7 @@
   "name": "@wranggle/rpc",
   "version": "0.1.0",
   "description": "Transparently call functions that live in other windows/processes using message-passing",
-  "types": "dist/types/wranggle-rpc.d.ts",
+  "types": "dist/wranggle-rpc.d.ts",
   "scripts": {
     "build": "run-s clean tsc tsc:unxkcd-types rollup",
     "rollup": "rollup -c",

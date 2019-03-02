@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+
 const distDir = path.resolve(__dirname, '../dist');
-const baseName = 'wranggle-rpc.d.ts';
-fs.copyFileSync(path.join(distDir, `rpc-full/src/${baseName}`), path.join(distDir, baseName));
+const typingsBasename = 'wranggle-rpc.d.ts';
+
+const wrong = fs.readFileSync(path.join(distDir, `rpc-full/src/${typingsBasename}`), 'utf8');
+const content = wrong.replace(/from 'rpc-/g, "from '.\/rpc-");
+fs.writeFileSync(path.join(distDir, typingsBasename), content);
