@@ -1,5 +1,5 @@
 import {EventEmitter} from "events"; 
-import {RequestPayload, ResponsePayload, RpcTransport} from "./interfaces";
+import {EndpointInfo, RequestPayload, ResponsePayload, RpcTransport} from "./interfaces";
 
 
 export interface LocalObserverTransportOpts {
@@ -9,9 +9,6 @@ const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'
 };
 
-export declare abstract class ILocalObserverTransport {
-  protected constructor(eventEmitter: EventEmitter, opts: Partial<LocalObserverTransportOpts>);
-}
 
 /**
  * This is mostly for internal testing but does have a use/role in production, as syntactical sugar for events.
@@ -20,7 +17,7 @@ export declare abstract class ILocalObserverTransport {
  *
  * 
  */
-export default class LocalObserverTransport implements RpcTransport, ILocalObserverTransport {
+export default class LocalObserverTransport implements RpcTransport {
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;

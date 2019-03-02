@@ -1,4 +1,4 @@
-import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {EndpointInfo, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 import {RequestPayload} from "rpc-core/src/interfaces";
 
 
@@ -11,7 +11,7 @@ export interface ElectronTransportOpts {
    * If endpoint in in the Main process (sending to a renderer) you would use _webContents_ (eg `myBrowserWindow.webContents`
    *   after creating the `new BrowserWindow()`)
    */
-  sender: SenderInstance;
+  ipcSender: SenderInstance;
 
   /**
    * A reference to the Electron IPC object responsible for receiving messages.
@@ -20,63 +20,74 @@ export interface ElectronTransportOpts {
    *
    * If endpoint is in the Main process, it would again be _ipcMain_ from: `const { ipcMain } = require('electron')`
    */
-  receiver: ReceiverInstance;
+  ipcReceiver: ReceiverInstance;
 
   /**
-   * Electron IPC channel name used for both sending and receiving messages. Optional.
+   * Optional. Electron IPC channel name used for both sending and receiving messages.
    */
-  channel?: string;
+  ipcChannel?: string;
 
   /**
-   * Optional. Electron IPC channel name for sending messages. If used, other endpoint should set this value as receivingChannel.
+   * Optional. Minor. Electron IPC channel name used for sending messages. The other endpoint should use this channel as
+   * its ipcChannelReceiving.
    */
-  sendingChannel?: string;
+  ipcChannelSending?: string;
 
   /**
-   * Optional. Electron IPC channel name when receiving messages. If used, other endpoint should set this value as sendingChannel.
+   * Optional. Minor. Electron IPC channel name used for receiving messages. The other endpoint should use this channel as
+   * its ipcChannelSending.
    */
-  receivingChannel?: string;
+  ipcChannelReceiving?: string;
 }
 
-const DefaultChannel = 'ElectronTransportForWranggleRpc';
+const DefaultElectronChannel = 'ElectronTransportForWranggleRpc';
 
 
 export default class ElectronTransport implements RpcTransport {
   private _isStopped = false;
   private readonly sender: SenderInstance;
   private readonly receiver: ReceiverInstance;
-  private readonly sendingChannel: string;
-  private readonly receivingChannel: string;
-  private _payloadHandler?: (payload: RequestPayload | ResponsePayload) => void;
+  private readonly ipcChannelSending: string;
+  private readonly ipcChannelReceiving: string;
+  private _listenHandler?: (payload: RequestPayload | ResponsePayload) => void;
+  private endpointId = 'unknown';
 
   constructor(opts: ElectronTransportOpts) {
-    if (!opts || !_isIpcSender(opts.sender)) {
+    if (!opts || !_isIpcSender(opts.ipcSender)) {
       throw new Error('ElectronTransport expecting ipc reference with a function to "send"');
     }
-    if (!_isIpcReceiver(opts.receiver)) {
+    if (!_isIpcReceiver(opts.ipcReceiver)) {
       throw new Error('ElectronTransport expecting ipc receiver reference with functions "on" and "removeListener"');
     }
-    this.sender = opts.sender;
-    this.receiver = opts.receiver;
-    this.sendingChannel = opts.sendingChannel || opts.channel || DefaultChannel;
-    this.receivingChannel = opts.receivingChannel || opts.channel || DefaultChannel;
+    this.sender = opts.ipcSender;
+    this.receiver = opts.ipcReceiver;
+    this.ipcChannelSending = opts.ipcChannelSending || opts.ipcChannel || DefaultElectronChannel;
+    this.ipcChannelReceiving = opts.ipcChannelReceiving || opts.ipcChannel || DefaultElectronChannel;
+
   }
 
   listen(rpcHandler: (payload: (RequestPayload | ResponsePayload)) => void): void {
     this._removeExistingListener();
-     this._payloadHandler = (payload: RequestPayload | ResponsePayload) => {
+    this._listenHandler = (payload: RequestPayload | ResponsePayload) => {
       if (!this._isStopped) {
         rpcHandler(payload);
       }
     };
-    this.receiver.on(this.receivingChannel, this._payloadHandler);
+
+    this.receiver.on(this.ipcChannelReceiving, (evt: any, data: RequestPayload | ResponsePayload) => { // todo: Electron ts type for Event
+      this._listenHandler && this._listenHandler(data)
+    });
   }
 
   sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (this._isStopped) {
       return;
     }
-    this.sender.send(this.sendingChannel, payload);
+    this.sender.send(this.ipcChannelSending, payload);
+  }
+
+  updateEndpointInfo(info: EndpointInfo) {
+    this.endpointId = info.senderId;
   }
 
   stopTransport(): void {
@@ -85,7 +96,7 @@ export default class ElectronTransport implements RpcTransport {
   }
 
   _removeExistingListener() {
-    this._payloadHandler && this.receiver.removeListener(this.receivingChannel, this._payloadHandler);
+    this._listenHandler && this.receiver.removeListener(this.ipcChannelReceiving, this._listenHandler);
   }
 
 }
@@ -101,13 +112,13 @@ function _isIpcSender(obj: any): boolean {
 
 
 
-type Listener = (data: any) => void;
+type ElectronListener = (evt: any, data: any) => void; // todo: Electron types (for Event)
 
 interface SenderInstance {
   send: (channel: string, data: any) => void;
 }
 
 interface ReceiverInstance {
-  on: (channel: string, listener: Listener) => void;
-  removeListener: (channel: string, listener: Listener) => void;
+  on: (channel: string, listener: ElectronListener) => void;
+  removeListener: (channel: string, listener: ElectronListener) => void;
 }

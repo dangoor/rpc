@@ -23,9 +23,9 @@ describe('@wranggle/rpc-core/local-observer-transport', () => {
     lastReceived = null;
     fakeReceiver = new EventEmitter();
     transport = new ElectronTransport({
-      sender: fakeSender,
-      receiver: fakeReceiver,
-      channel: ChannelForTest,
+      ipcSender: fakeSender,
+      ipcReceiver: fakeReceiver,
+      ipcChannel: ChannelForTest,
     });
     transport.listen((payload: RequestPayload | ResponsePayload) => {
       lastReceived = payload;
@@ -40,7 +40,7 @@ describe('@wranggle/rpc-core/local-observer-transport', () => {
   });
 
   test('receive messages', () => {
-    fakeReceiver.emit(ChannelForTest, { pretend: 'somePayload' });
+    fakeReceiver.emit(ChannelForTest, { event: 'fake' }, { pretend: 'somePayload' });
     expect(lastReceived.pretend).toEqual('somePayload')
   });
   

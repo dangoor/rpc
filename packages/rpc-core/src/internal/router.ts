@@ -1,7 +1,6 @@
 import RemoteRequest from "./remote-request";
-import FlightReceipt from "./flight-receipt";
 import {buildTransport} from "./transport-construction";
-import {IDict, RequestPayload, ResponsePayload, RemotePromise, RpcOpts, RpcTransport, ConnectionStatus, ConnectionStatusOpts} from "../interfaces";
+import {IDict, RequestPayload, ResponsePayload, RemotePromise, RpcOpts, RpcTransport, ConnectionStatus, ConnectionStatusOpts, EndpointInfo} from "../interfaces";
 
 
 const Protocol = 'WranggleRpc-1';
@@ -35,8 +34,11 @@ export default class Router {
 
   useTransport(transportOpts: RpcTransport | object | string) {
     const transport = this.transport = buildTransport(transportOpts);
-    transport && transport.listen(this._onMessage.bind(this));
-    // todo: send handshake message?
+    if (transport) {
+      transport.listen(this._onMessage.bind(this));
+      transport.updateEndpointInfo && transport.updateEndpointInfo(this.endpointInfo());
+      // todo: send handshake message?
+    }
   }
 
   stopTransport(): void {
@@ -182,6 +184,12 @@ export default class Router {
     }
     // todo: forEndpoint option? if (payload.forEndpoint && payload.forEndpoint !== senderId) { return false; }
     return true;
+  }
+
+  private endpointInfo(): EndpointInfo {
+    return {
+      senderId: this.senderId as string
+    };
   }
 }
 

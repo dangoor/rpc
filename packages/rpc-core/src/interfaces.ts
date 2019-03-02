@@ -155,6 +155,7 @@ export interface RpcTransport {
 
   stopTransport(): void;
 
+  updateEndpointInfo?: (data: EndpointInfo) => void;
   // todo: reportDisconnect? connection status? decide where to keep features like heartbeat
 }
 
@@ -169,6 +170,10 @@ export interface ResponsePayload extends CommonPayload {
   respondingTo: string;
   error?: any;
   responseArgs?: any[];
+}
+
+export interface EndpointInfo {
+  senderId: string;
 }
 
 // todo: find existing interface?

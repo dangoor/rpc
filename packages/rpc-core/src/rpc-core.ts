@@ -15,7 +15,7 @@ const DefaultRpcOpts = {
 };
 
 
-export default class WranggleRpc<T> implements WranggleRpcTs<T> {
+export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: rename back to WranggleCore after ts trouble resolved
   private _rootOpts = <RpcOpts>{};
   private _requestOptsByMethod = <IDict<RequestOpts>>{};
   // private logger = <ILogger>console;

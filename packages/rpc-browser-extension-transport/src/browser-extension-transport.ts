@@ -1,4 +1,4 @@
-import {RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {EndpointInfo, RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 import * as chromeApi from './chrome-manifest-2-api';
 
 

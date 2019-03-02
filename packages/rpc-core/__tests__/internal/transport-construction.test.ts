@@ -1,6 +1,6 @@
 import WranggleRpc from '../../src/rpc-core';
 import {RequestPayload} from "../../src/interfaces";
-import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {ResponsePayload, RpcTransport, EndpointInfo} from "rpc-core/src/interfaces";
 
 
 describe('@wranggle/rpc-core/transport-construction', () => {

@@ -1,4 +1,4 @@
-import {ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
+import {EndpointInfo, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 import {RequestPayload} from "rpc-core/src/interfaces";
 
 

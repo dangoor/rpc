@@ -1,9 +1,7 @@
 import Router from '../../src/internal/router';
 import RemoteRequest from '../../src/internal/remote-request';
 import {buildFakeRequestPayload, buildFakeResponsePayload, DefaultFakeChannel,} from "../test-support/fake-payload-support";
-import {RequestPayload, ResponsePayload, RpcTransport} from "../../src/interfaces";
-import FlightReceipt from "rpc-core/src/internal/flight-receipt";
-
+import {RequestPayload, ResponsePayload, RpcTransport, EndpointInfo} from "../../src/interfaces";
 
 
 describe('@wranggle/rpc-core/router', () => {

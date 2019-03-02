@@ -8,8 +8,8 @@ const noop = () => {};
 
 
 describe('@wranggle/rpc-browser-extension-transport', () => {
-  let lastSend, lastReceived;
-  let fakeChromeListener;
+  let lastSend: any, lastReceived: any;
+  let fakeChromeListener: any;
 
   beforeEach(() => {
     _restoreMockSwitches();
@@ -17,13 +17,13 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
     lastReceived = null;
     fakeChromeListener = null;
     
-    _setMockFunction('sendMessageToTab', (tabId, payload) => {
+    _setMockFunction('sendMessageToTab', (tabId: any, payload: any) => {
       lastSend = { tabId, payload, sendApi: 'chrome.tabs' };
     });
-    _setMockFunction('sendRuntimeMessage', (payload) => {
+    _setMockFunction('sendRuntimeMessage', (payload: any) => {
       lastSend = { payload, sendApi: 'chrome.runtime' };
     });
-    _setMockFunction('addMessageListener', (listener) => {
+    _setMockFunction('addMessageListener', (listener: any) => {
       fakeChromeListener = listener
     });
   });
@@ -86,7 +86,7 @@ describe('@wranggle/rpc-browser-extension-transport', () => {
 
 
 function _setupCustomMock() {
-  const myCustomShittyMock = {};
+  const myCustomShittyMock = <any>{};
   [
     'hasChromeExtensionApi',
     'getChromeRuntimeId',
@@ -104,14 +104,14 @@ function _setupCustomMock() {
 
 const __chromeApiMockFunctions = {
 };
-function _getMockFn(field): any {
-  return __chromeApiMockFunctions[field];
+function _getMockFn(field: any): any {
+  return (__chromeApiMockFunctions as any)[field];
 }
 function _setMockFunction(field: string, fn: any) {
   if (typeof fn !== 'function') {
     throw new Error(`Expecting a function as mock replacement for "${field}"'`);
   }
-  __chromeApiMockFunctions[field] = fn;
+  (__chromeApiMockFunctions as any)[field] = fn;
 }
 function _restoreMockSwitches() {
   Object.assign(__chromeApiMockFunctions, {

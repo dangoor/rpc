@@ -1,8 +1,7 @@
-import WranggleRpc from 'rpc-core/src/rpc-core';
-import {RequestPayload} from "rpc-core/src/interfaces";
+// import WranggleRpc from 'rpc-core/src/rpc-core';
+import {RequestPayload, IDict, ResponsePayload} from "rpc-core/src/interfaces";
 import PostmessageTransport from "../src/postmessage-transport";
 import { EventEmitter } from 'events';
-import {IDict, ResponsePayload} from "@wranggle/rpc-core/src/interfaces";
 
 
 const SomeOrigin = 'https://test.local';
@@ -11,8 +10,8 @@ const SomeOrigin = 'https://test.local';
 describe('@wranggle/rpc-postmessage-transport', () => {
 
   describe('shouldReceive', () => {
-    let lastMessage;
-    let mockWindow;
+    let lastMessage: any;
+    let mockWindow: any;
 
     beforeEach(()=> {
       lastMessage = null;
@@ -80,14 +79,14 @@ class MockWindow {
     this.observer.emit('message', { data, origin } )
   }
 
-  addEventListener(name, listener) {
+  addEventListener(name: string, listener: any) {
     this.observer.on(name, listener);
   }
-  postMessage(data, origin) {
+  postMessage(data: any, origin: string) {
     const mockWindow = this._remoteWindowByOrigin[origin];
     mockWindow && mockWindow.fakeReceive(data, origin);
   }
-  removeEventListener(methodName, cb) {
+  removeEventListener(methodName: string, cb: any) {
     this.observer.removeListener(methodName, cb);
   }
 
