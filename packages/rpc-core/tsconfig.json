@@ -6,7 +6,6 @@
    "src/*": [ "./src/*" ],
    "packages": [ "../*" ]
   }
-
  },
  "include": [
    "./src"

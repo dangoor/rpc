@@ -1,5 +1,6 @@
 import {RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
-const chromeApi = require('./chrome-manifest-2-api.js');
+import * as chromeApi from './chrome-manifest-2-api';
+
 
 type ChromeListener = (payload: (RequestPayload | ResponsePayload), sender: any) => void;
 

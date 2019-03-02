@@ -1,12 +1,12 @@
 import includePaths from 'rollup-plugin-includepaths';
-// import resolve from "rollup-plugin-node-resolve";
+import resolve from "rollup-plugin-node-resolve";
 import commonjs from 'rollup-plugin-commonjs';
 const path = require('path');
 
 
 export default {
   // I gave up on the rollup plugin for typescript. Rollup must run after tsc compilation
-  input: 'out/rpc-dist/src/wranggle-rpc.js',
+  input: 'out/rpc-full/src/wranggle-rpc.js',
   output: [
     {
       file: 'dist/wranggle-rpc.js',
@@ -33,13 +33,16 @@ export default {
     }),
     // resolve({
     //   jsnext: true,
-    //   // jail: 'out/rpc-dist/src',
+    //   // jail: 'out/rpc-full/src',
     //   only: [ /^rpc-.*$/, /^@wranggle\/.*$/ ],
     //   // only: [ /.*/ ],
     //   // only: () => true,
     //   // main: false,
     //   // module: true,
     // }),
+    resolve({
+      jsnext: true,
+    }),
     commonjs()
 
     // note: didn't get rollup-plugin-typescript2 working so using rollup on output of tsc-

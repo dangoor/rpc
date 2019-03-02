@@ -1,5 +1,5 @@
-import {Protocol} from "rpc-core/src/internal/router";
-import {RequestPayload, ResponsePayload} from "rpc-core/src/interfaces";
+import {Protocol} from "../../src/internal/router";
+import {RequestPayload, ResponsePayload} from "../../src/interfaces";
 
 const DefaultFakeChannel = 'someFakeChannel';
 const DefaultLocalSenderId = 'fakeLocalSide';

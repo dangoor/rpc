@@ -2,7 +2,7 @@
 import BrowserExtensionTransport from '../src/browser-extension-transport';
 import { fakeSender, FakeChromeExtensionId } from './test-support/fake-sender-support';
 
-jest.mock('../src/chrome-manifest-2-api.js', () => _setupCustomMock());
+jest.mock('../src/chrome-manifest-2-api.ts', () => _setupCustomMock());
 
 const noop = () => {};
 

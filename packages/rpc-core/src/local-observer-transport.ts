@@ -9,7 +9,7 @@ const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'
 };
 
-export declare abstract class LocalObserverTransport {
+export declare abstract class ILocalObserverTransport {
   protected constructor(eventEmitter: EventEmitter, opts: Partial<LocalObserverTransportOpts>);
 }
 
@@ -20,7 +20,7 @@ export declare abstract class LocalObserverTransport {
  *
  * 
  */
-export default class LocalObserverRpcTransport implements RpcTransport, LocalObserverRpcTransport {
+export default class LocalObserverTransport implements RpcTransport, ILocalObserverTransport {
   private readonly observer: EventEmitter;
   private readonly eventName: string;
   private _isStopped = false;
@@ -65,3 +65,4 @@ export default class LocalObserverRpcTransport implements RpcTransport, LocalObs
 function _isEventEmitter(obj: any): boolean {
   return typeof(obj === 'object') && [ 'on', 'emit', 'removeListener' ].every(m => typeof obj[m] === 'function');
 }
+

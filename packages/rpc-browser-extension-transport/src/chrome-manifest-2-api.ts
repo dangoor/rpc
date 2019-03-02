@@ -1,51 +1,41 @@
 
 
+type Callback = (...args: any[]) => void;
 
-
-function hasChromeExtensionApi() {
+export function hasChromeExtensionApi() {
+  // @ts-ignore
   return !!global.chrome || !!chrome.runtime;
 }
 
-function getChromeRuntimeId() {
+export function getChromeRuntimeId() {
   return chrome.runtime.id;
 }
-function isContentScript() {
+
+export function isContentScript() {
   return typeof chrome.runtime.sendMessage === 'function' &&
     typeof chrome.runtime.getPlatformInfo !== 'function';
 }
 
-function sendRuntimeMessage(payload, cb) {
+export function sendRuntimeMessage(payload: any, cb?: Callback) {
   chrome.runtime.sendMessage(payload, cb);
 }
 
-function sendMessageToTab(tabId, payload, cb) {
+export function sendMessageToTab(tabId: number, payload: any, cb?: Callback) {
   chrome.tabs.sendMessage(tabId, payload, cb);
 }
 
-function addMessageListener(listener) {
+export function addMessageListener(listener: Callback) {
   chrome.runtime.onMessage.addListener(listener)
 }
 
-function removeMessageListener(listener) {
+export function removeMessageListener(listener: Callback) {
   chrome.runtime.onMessage.removeListener(listener);
 }
 
-function warnIfErrorCb() {
+export function warnIfErrorCb() {
   return () => {
     if (chrome.runtime.lastError) {
       console.warn(chrome.runtime.lastError);
     }
   }
 }
-
-
-module.exports = {
-  getChromeRuntimeId,
-  addMessageListener,
-  hasChromeExtensionApi,
-  isContentScript,
-  removeMessageListener,
-  sendMessageToTab,
-  sendRuntimeMessage,
-  warnIfErrorCb,
-};

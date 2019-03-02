@@ -6,9 +6,9 @@ export interface ElectronTransportOpts {
   /**
    * A reference to the Electron IPC object responsible for sending messages.
    *
-   * If for a WranggleRpc endpoint in a renderer/ui process (sending to the main process) you would use the _ipcRenderer_ from: `const { ipcRenderer } = require('electron')`
+   * If WranggleRpc endpoint is in a renderer/ui process (sending to the main process) you would use the _ipcRenderer_ from: `const { ipcRenderer } = require('electron')`
    *
-   * If for an endpoint in the Main process (sending to a renderer) you would use _webContents_ (eg `myBrowserWindow.webContents`
+   * If endpoint in in the Main process (sending to a renderer) you would use _webContents_ (eg `myBrowserWindow.webContents`
    *   after creating the `new BrowserWindow()`)
    */
   sender: SenderInstance;
@@ -16,16 +16,26 @@ export interface ElectronTransportOpts {
   /**
    * A reference to the Electron IPC object responsible for receiving messages.
    *
-   * If for a WranggleRpc endpoint in a renderer/ui process, you would use the _ipcRenderer_ from: `const { ipcRenderer } = require('electron')`
+   * If WranggleRpc endpoint is in a renderer/ui process, you would use the _ipcRenderer_ from: `const { ipcRenderer } = require('electron')`
    *
-   * If for an endpoint in the Main process, it would again be _ipcMain_ from: `const { ipcMain } = require('electron')`
+   * If endpoint is in the Main process, it would again be _ipcMain_ from: `const { ipcMain } = require('electron')`
    */
   receiver: ReceiverInstance;
 
   /**
-   * Electron IPC channel name. Optional.
+   * Electron IPC channel name used for both sending and receiving messages. Optional.
    */
-  electronChannel?: string;
+  channel?: string;
+
+  /**
+   * Optional. Electron IPC channel name for sending messages. If used, other endpoint should set this value as receivingChannel.
+   */
+  sendingChannel?: string;
+
+  /**
+   * Optional. Electron IPC channel name when receiving messages. If used, other endpoint should set this value as sendingChannel.
+   */
+  receivingChannel?: string;
 }
 
 const DefaultChannel = 'ElectronTransportForWranggleRpc';
@@ -35,7 +45,8 @@ export default class ElectronTransport implements RpcTransport {
   private _isStopped = false;
   private readonly sender: SenderInstance;
   private readonly receiver: ReceiverInstance;
-  private readonly channel: string;
+  private readonly sendingChannel: string;
+  private readonly receivingChannel: string;
   private _payloadHandler?: (payload: RequestPayload | ResponsePayload) => void;
 
   constructor(opts: ElectronTransportOpts) {
@@ -47,7 +58,8 @@ export default class ElectronTransport implements RpcTransport {
     }
     this.sender = opts.sender;
     this.receiver = opts.receiver;
-    this.channel = opts.electronChannel || DefaultChannel;
+    this.sendingChannel = opts.sendingChannel || opts.channel || DefaultChannel;
+    this.receivingChannel = opts.receivingChannel || opts.channel || DefaultChannel;
   }
 
   listen(rpcHandler: (payload: (RequestPayload | ResponsePayload)) => void): void {
@@ -57,14 +69,14 @@ export default class ElectronTransport implements RpcTransport {
         rpcHandler(payload);
       }
     };
-    this.receiver.on(this.channel, this._payloadHandler);
+    this.receiver.on(this.receivingChannel, this._payloadHandler);
   }
 
   sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (this._isStopped) {
       return;
     }
-    this.sender.send(this.channel, payload);
+    this.sender.send(this.sendingChannel, payload);
   }
 
   stopTransport(): void {
@@ -73,7 +85,7 @@ export default class ElectronTransport implements RpcTransport {
   }
 
   _removeExistingListener() {
-    this._payloadHandler && this.receiver.removeListener(this.channel, this._payloadHandler);
+    this._payloadHandler && this.receiver.removeListener(this.receivingChannel, this._payloadHandler);
   }
 
 }

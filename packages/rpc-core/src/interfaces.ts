@@ -5,81 +5,27 @@ export declare abstract class WranggleRpcTs<T> {
   
   protected constructor(rpcOpts?: Partial<RpcOpts>);
 
-  /**
-   * Incoming requests are passed to methods on the specified `delegate` object if it passes the `DelegateOpts` filters specified.
-   *
-   */
   addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts): void;
 
-  /**
-   * Add a function to handle incoming request messages.
-   *
-   * @param methodName. String that is a legitimate js variable name. (No spaces and such.)
-   * @param fn Function that runs the remotely-passed arguments. This function can return a value or a promise.
-   * @param context. Optional. Sets the "this" context of your function. Note/reminder: arrow functions do not have a "this" binding,
-   *   so use a full "function" when setting this option.
-   */
+
   addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): void;
 
-  /**
-   * Shortcut to addRequestHandler. Accepts an object of methodName-function pairs.
-   * Note: methodName/keys starting with underscore "_" are skipped here, but can be added with a direct call to `addRequestHandler`
-   * @param fnByMethodName
-   * @param context
-   */
+
   addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): void;
 
-  /**
-   * Returns an object that you use to make your remote calls.
-   * All remote calls return a `RemotePromise`.
-   *
-   * For example, if in the other window you added a request handler:
-   *   ```
-   *   otherRpc.addRequestHandler('sayHello', name => `Hello ${name}`)
-   *   ```
-   * You could then call it from the current window:
-   *   ```
-   *   const remoteControl = thisRpc.remoteInterface();
-   *   const remotePromise = remoteControl.sayHello('Bob');
-   *   remotePromise.useTimeout(500);
-   *   console.log(remotePromise.info());
-   *   ```
-   *
-   * The returned `RemotePromise` behaves as a normal Promise, with some additional features, such as
-   * setting timeout and request options, and getting status info.
-   */
+
   remoteInterface(): T;
 
-  /**
-   * Set the RpcTransport for sending and receiving messages.
-   *
-   * @param transportOrOpts: an instantiated RpcTransport or a construction-shortcut for creating one. (see docs)
-   */
+
   useTransport(transportOrOpts: RpcTransport | object | string): void;
 
-  /**
-   * Update options. Accepts same values as during WranggleRpc construction.
-   * @param opts
-   */
+
   opts(opts: Partial<RpcOpts>): void;
 
 
-  /**
-   * An alternative way to call remote methods.
-   * @param methodName
-   * @param userArgs
-   * @param requestOpts
-   */
   makeRemoteRequest(methodName: string, userArgs: any[], requestOpts: RequestOpts): RemotePromise<any>;  // make generic? makeRemoteRequest<T>(methodName: string, userArgs: any[], requestOpts: RequestOpts): Promise<any> | RemotePromise<T>;
 
-  /**
-   *
-   * whenever a request to the passed-in methodName is called, it applies the supplied `RequestOpts` options
-   * See also setting the `allRequestOpts` global option. And some options can be applied on `RemotePromise`.
-   *
-   * @param methodName
-   * @param requestOpts
-   */
+
   setDefaultRequestOptsForMethod(methodName: string, requestOpts: RequestOpts): void;
 
 
@@ -250,5 +196,5 @@ export enum RequestStatus {
   SkipRsvp = 'SkipRsvp',
 }
 
-
-export { LocalObserverTransportOpts, LocalObserverTransport } from './local-observer-transport';
+// error exporting LocalObserverTransport.. todo: ts acrobatics
+// but this is ok: export { LocalObserverTransportOpts } from './local-observer-transport';

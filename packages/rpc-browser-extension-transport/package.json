@@ -36,5 +36,8 @@
   ],
   "author": "Jeff Ferber <jeff@wranggle.com>",
   "homepage": "https://github.com/wranggle/rpc#readme",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/chrome": "^0.0.81"
+  }
 }

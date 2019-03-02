@@ -25,7 +25,7 @@ describe('@wranggle/rpc-core/local-observer-transport', () => {
     transport = new ElectronTransport({
       sender: fakeSender,
       receiver: fakeReceiver,
-      electronChannel: ChannelForTest,
+      channel: ChannelForTest,
     });
     transport.listen((payload: RequestPayload | ResponsePayload) => {
       lastReceived = payload;

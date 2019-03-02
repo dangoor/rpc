@@ -1,7 +1,6 @@
 import {RequestInfo, RequestPayload, RemotePromise, RequestStatus, RequestOpts} from "../interfaces";
 import buildPromiseResolver, {PromiseResolver} from "../util/promise-resolver";
-
-const { composeExtendedPromise } = require('../util/composition-util.js');
+import { composeExtendedPromise } from '../util/composition-util';
 
 
 const TimeoutErrorCode = 'RemoteMethodTimeoutError'; // todo: to constants or custom error

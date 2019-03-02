@@ -31,28 +31,74 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> {
     this.opts(Object.assign({ senderId: kvid(8) }, DefaultRpcOpts, rpcOpts));
   }
 
+  /**
+   * Incoming requests are passed to methods on the specified `delegate` object if it passes the `DelegateOpts` filters specified.
+   *
+   */
   addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts) {
     this.requestHandler.addRequestHandlerDelegate(delegate, opts);
   }
 
+  /**
+   * Add a function to handle incoming request messages.
+   *
+   * @param methodName. String that is a legitimate js variable name. (No spaces and such.)
+   * @param fn Function that runs the remotely-passed arguments. This function can return a value or a promise.
+   * @param context. Optional. Sets the "this" context of your function. Note/reminder: arrow functions do not have a "this" binding,
+   *   so use a full "function" when setting this option.
+   */
   addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): void {
     this.requestHandler.addRequestHandler(methodName, fn, context);
   }
 
+  /**
+   * Shortcut to addRequestHandler. Accepts an object of methodName-function pairs.
+   * Note: methodName/keys starting with underscore "_" are skipped here, but can be added with a direct call to `addRequestHandler`
+   * @param fnByMethodName
+   * @param context
+   */
   addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): void {
     this.requestHandler.addRequestHandlers(fnByMethodName, context);
   }
 
+  /**
+   * Set the RpcTransport for sending and receiving messages.
+   *
+   * @param transportOrOpts: an instantiated RpcTransport or a construction-shortcut for creating one. (see docs)
+   */
   useTransport(transportOpts: RpcTransport | object | string) {
     this.router.useTransport(transportOpts);
   }
 
+  /**
+   * Update options. Accepts same values as during WranggleRpc construction.
+   * @param opts
+   */
   opts(opts: Partial<RpcOpts>): void {
     this.router.routerOpts(opts);
     this.requestHandler.requestHandlerOpts(opts);
     Object.assign(this._rootOpts, opts);
   }
 
+  /**
+   * Returns an object that you use to make your remote calls.
+   * All remote calls return a `RemotePromise`.
+   *
+   * For example, if in the other window you added a request handler:
+   *   ```
+   *   otherRpc.addRequestHandler('sayHello', name => `Hello ${name}`)
+   *   ```
+   * You could then call it from the current window:
+   *   ```
+   *   const remoteControl = thisRpc.remoteInterface();
+   *   const remotePromise = remoteControl.sayHello('Bob');
+   *   remotePromise.useTimeout(500);
+   *   console.log(remotePromise.info());
+   *   ```
+   *
+   * The returned `RemotePromise` behaves as a normal Promise, with some additional features, such as
+   * setting timeout and request options, and getting status info.
+   */
   remoteInterface(): T {
     const itself = this;
     return new Proxy({}, {
@@ -62,6 +108,12 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> {
     }) as T;
   }
 
+  /**
+   * An alternative way to call remote methods.
+   * @param methodName
+   * @param userArgs
+   * @param requestOpts
+   */
   makeRemoteRequest(methodName: string, userArgs: any[], requestOpts = <RequestOpts>{}): RemotePromise<any> {
     const rootOpts = this._rootOpts;
     requestOpts = Object.assign({}, rootOpts.allRequestOpts, this._requestOptsByMethod[methodName], requestOpts);
@@ -69,6 +121,14 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> {
     return this.router.sendRemoteRequest(req);
   }
 
+  /**
+   *
+   * whenever a request to the passed-in methodName is called, it applies the supplied `RequestOpts` options
+   * See also setting the `allRequestOpts` global option. And some options can be applied on `RemotePromise`.
+   *
+   * @param methodName
+   * @param requestOpts
+   */
   setDefaultRequestOptsForMethod(methodName: string, requestOpts: RequestOpts): void {
     this._requestOptsByMethod[methodName] = Object.assign((this._requestOptsByMethod[methodName] || {}), requestOpts);
   }
