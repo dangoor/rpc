@@ -1,23 +1,23 @@
 import WranggleRpc from 'rpc-core/src/rpc-core';
-import LocalObserverTransport from 'rpc-core/src/local-observer-transport';
+import LocalObserverTransport, {LocalObserverTransportOpts} from 'rpc-core/src/local-observer-transport';
 import BrowserExtensionTransport from 'rpc-browser-extension-transport/src/browser-extension-transport';
 import PostmessageTransport from 'rpc-postmessage-transport/src/postmessage-transport';
-import TransportRelay from 'rpc-relay/src/relay';
 import ElectronTransport from 'rpc-electron-transport/src/electron-transport';
+import Relay from 'rpc-relay/src/relay';
+import {IDict, RpcTransport, RpcOpts } from "rpc-core/src/interfaces";
 
 
-// Object.assign(WranggleRpc, {
-//   BrowserExtensionTransport,
-//   ElectronTransport,
-//   LocalObserverTransport,
-//   PostmessageTransport,
-//   TransportRelay,
-//   WranggleRpc,
-// });
-// module.exports = WranggleRpc;
-
-// note: rollup is yelling at me about mixing named and default exports (even for UMD output) so using module.exports instead of:
-// export default WranggleRpc;
+const TransportClassByShortcut = <IDict<Klass>>{
+  chrome: BrowserExtensionTransport,
+  browserExtension: BrowserExtensionTransport,
+  electron: ElectronTransport,
+  postmessage: PostmessageTransport,
+  postMessage: PostmessageTransport,
+  localObserver: LocalObserverTransport,
+};
+Object.keys(TransportClassByShortcut).forEach((shortcut: string) => {
+  WranggleRpc.registerTransport(shortcut, (opts: any) => new TransportClassByShortcut[shortcut](opts));
+});
 
 export default WranggleRpc; 
 export {
@@ -25,6 +25,18 @@ export {
   ElectronTransport,
   LocalObserverTransport,
   PostmessageTransport,
-  TransportRelay,
+  Relay,
   WranggleRpc,
 }
+
+type Klass = new (...args: any[]) => RpcTransport;
+
+// todo: figure out how to extend/merge RpcOpts with transport shortcuts in typescript
+// declare module "rpc-core/src/rpc-core" {
+//   export class WranggleRpc {
+//     protected constructor(rpcOpts?: Partial<RpcOptsWthTransports>);
+//   }
+// }
+// export interface RpcOptsWthTransports extends RpcOpts {
+//   localObserver?: LocalObserverTransportOpts;
+// }

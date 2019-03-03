@@ -28,7 +28,6 @@ export declare abstract class WranggleRpcTs<T> {
 
   setDefaultRequestOptsForMethod(methodName: string, requestOpts: RequestOpts): void;
 
-
   // todo:  checkConnectionStatus(opts: ConnectionStatusOpts): Promise<ConnectionStatus>;
 }
 
@@ -63,7 +62,47 @@ export interface RpcOpts {
 
   // todo: accept a logger
   // logger: ILogger;
+
+
+// ~~~~~~~~~~~~~~~~~ placeholder hack. todo: move to packages/rpc-full
+  // I'm getting near my self-imposed time cap for this project and am hitting build/typescript problems. So throwing existing transports in here for now. Thought I'd use declarations-merging to extend RpcOpts for each transport but my first attempts haven't worked.
+  /**
+   * Shortcut for constructing BrowserExtensionTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  chrome: TransportConstructionOpts,
+  /**
+   * Shortcut for constructing BrowserExtensionTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  browserExtension: TransportConstructionOpts,
+
+  /**
+   * Shortcut for constructing ElectronTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  electron: TransportConstructionOpts,
+
+  /**
+   * Shortcut for constructing PostmessageTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  postmessage: TransportConstructionOpts,
+
+  /**
+   * Shortcut for constructing PostmessageTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  postMessage: TransportConstructionOpts,
+
+
+  /**
+   * Shortcut for constructing LocalObserverTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  localObserver: TransportConstructionOpts,
 }
+type TransportConstructionOpts = any;
 
 export interface IDict<T> {
   [key: string]: T;

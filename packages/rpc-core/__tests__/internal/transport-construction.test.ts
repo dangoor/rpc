@@ -1,6 +1,8 @@
 import WranggleRpc from '../../src/rpc-core';
 import {RequestPayload} from "../../src/interfaces";
 import {ResponsePayload, RpcTransport, EndpointInfo} from "rpc-core/src/interfaces";
+import { EventEmitter } from 'events';
+import {extractTransportOpts} from "../../src/internal/transport-construction";
 
 
 describe('@wranggle/rpc-core/transport-construction', () => {
@@ -23,6 +25,12 @@ describe('@wranggle/rpc-core/transport-construction', () => {
     expect(typeof transport.constructorOpts).toBe('object');
   };
 
+  test('transport shortcut as top-level rpc option using extractTransportOpts', () =>{
+    // @ts-ignore
+    const rpc = new WranggleRpc(extractTransportOpts({ something: { config_1: 'info' } }));
+    expectValidTransport(rpc);
+    expect(getTransportConfig(rpc).config_1).toBe('info');
+  });
 
   test('permit late creation of transport', () => {
     const rpc = new WranggleRpc();
@@ -85,3 +93,4 @@ class SomeTransport implements RpcTransport {
 
 
 }
+

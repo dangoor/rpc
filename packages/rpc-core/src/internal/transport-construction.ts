@@ -1,4 +1,4 @@
-import {RpcTransport, IDict} from "../interfaces";
+import {RpcTransport, IDict, RpcOpts} from "../interfaces";
 
 
 type TransportFactory = (opts: any) => RpcTransport;
@@ -8,7 +8,8 @@ export function registerTransport(transportType: string, transportFactory: Trans
   transportFactoryByType[transportType] = transportFactory;
 }
 
-
+// todo: put transport shortcut directly on RpcOpts. Eg: `new WranggleRpc({ electron: myElectronOpts })`
+//   I don't feel like a typescript research project at the moment.. need to check if each transport could declare the same module or whatever and add it own option
 export function buildTransport(val: any): RpcTransport | void{
   if (!val) {
     throw new Error('Invalid transport options');
@@ -26,10 +27,6 @@ export function buildTransport(val: any): RpcTransport | void{
       transportType = val.transportType || val.type;
       transportOpts = val;
     }
-    // else { // for now dropping support for signature like: { chrome: { forTabId: 20 } }
-    //   transportType = Object.keys(val).find(_hasTransportType);
-    //   transportOpts = transportType && val[transportType];
-    // }
     if (transportOpts === true) {
       transportOpts = {};
     }
@@ -41,6 +38,21 @@ export function buildTransport(val: any): RpcTransport | void{
     console.warn('Unable to creat transport instance from passed in options:', val);
   }
   return transport;
+}
+
+export function extractTransportOpts(rpcOpts: Partial<RpcOpts>): Partial<RpcOpts> {
+  if (rpcOpts.transport) {
+    return rpcOpts;
+  }
+  const transportType = Object.keys(rpcOpts).find(_hasTransportType);
+  const transportOpts = transportType && (<any>rpcOpts)[transportType];
+  if (typeof transportOpts === 'object') {
+    transportOpts.transportType = transportType;
+    rpcOpts.transport = transportOpts;
+    // @ts-ignore
+    delete rpcOpts[transportType];
+  }
+  return rpcOpts;
 }
 
 function _hasTransportType(transportType: string): boolean {

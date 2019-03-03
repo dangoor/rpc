@@ -25,7 +25,7 @@ describe('@wranggle/rpc-core/local-observer-transport', () => {
 
   test('sending another instance a message with shared observer', () => {
     const sharedObserver = new EventEmitter();
-    const transport_1 = new LocalObserverTransport(sharedObserver);
+    const transport_1 = new LocalObserverTransport({ observer: sharedObserver });
     const transport_2 = new LocalObserverTransport(sharedObserver);
     transport_1.listen(testMessageHandler);
     // @ts-ignore // todo: mock request or response payload

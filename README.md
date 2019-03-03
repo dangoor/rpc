@@ -19,7 +19,7 @@ In a Chrome extension, we see code in the page/browser-tab window using Wranggle
  
 ```
 import WranggleRpc from '@wranggle/rpc';
-const remote = new WranggleRpc('chrome').remoteInterface();
+const remote = new WranggleRpc({ transport: 'chrome' }).remoteInterface();
 
 async function screenshotIfDesired() {
   const userPrefs = await remote.getUserPrefs();  
@@ -39,7 +39,7 @@ Of course, the remote endpoint needs to declare the method call requests it will
  
 ```
 import WranggleRpc from '@wranggle/rpc';
-const rpc = new WranggleRpc('chrome'); // note: in most cases we'd use additional transport options here. See BrowserExtensionTransport below. 
+const rpc = new WranggleRpc({ transport: 'chrome' }); // note: in most cases we'd use additional transport options here. See BrowserExtensionTransport below. 
 
 rpc.addRequestHandlerDelegate(userPrefs);    
 rpc.addRequestHandler(takeScreenshot, someFunctionThatUsesChromeApi);

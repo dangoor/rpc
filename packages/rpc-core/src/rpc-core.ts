@@ -1,7 +1,7 @@
 import RemoteRequest from "./internal/remote-request";
 import Router from "./internal/router";
 import RequestHandler from "./internal/request-handler";
-import {registerTransport} from "./internal/transport-construction";
+import {extractTransportOpts, registerTransport} from "./internal/transport-construction";
 import {DelegateOpts, IDict, RequestOpts, RpcTransport, RpcOpts, WranggleRpcTs, RemotePromise} from "./interfaces";
 
 const kvid = require('kvid');
@@ -75,6 +75,7 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
    * @param opts
    */
   opts(opts: Partial<RpcOpts>): void {
+    opts = extractTransportOpts(opts);
     this.router.routerOpts(opts);
     this.requestHandler.requestHandlerOpts(opts);
     Object.assign(this._rootOpts, opts);

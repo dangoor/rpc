@@ -1,9 +1,10 @@
 import {EventEmitter} from "events"; 
-import {EndpointInfo, RequestPayload, ResponsePayload, RpcTransport} from "./interfaces";
+import {EndpointInfo, RequestPayload, ResponsePayload, RpcOpts, RpcTransport} from "./interfaces";
 
 
 export interface LocalObserverTransportOpts {
-  messageEventName: string;
+  observer: EventEmitter;
+  messageEventName?: string;
 }
 const DefaultOpts = {
   messageEventName: 'LocalRpcEvent'
@@ -23,14 +24,17 @@ export default class LocalObserverTransport implements RpcTransport {
   private _isStopped = false;
   private _payloadHandler?: (payload: RequestPayload | ResponsePayload) => void;
 
-  constructor(eventEmitter: EventEmitter, opts=<Partial<LocalObserverTransportOpts>>{}) {
-    if (!_isEventEmitter(eventEmitter)) {
-      console.error('LocalObserverTransport expecting an EventEmitter for its first param. Got:', eventEmitter);
+
+  constructor(opts: LocalObserverTransportOpts | EventEmitter) {
+    let { observer, messageEventName } = (opts || {}) as any;
+    // @ts-ignore
+    observer = observer || opts;
+    if (!_isEventEmitter(observer)) {
+      console.error('LocalObserverTransport expecting an EventEmitter.', opts);
       throw new Error('InvalidArgument constructing LocalObserverTransport');
     }
-    this.observer = eventEmitter;
-    opts = Object.assign({}, DefaultOpts, opts);
-    this.eventName = opts.messageEventName || DefaultOpts.messageEventName;
+    this.observer = observer;
+    this.eventName = messageEventName || DefaultOpts.messageEventName;
   }
 
   listen(handler: (payload: RequestPayload | ResponsePayload) => void): void {
@@ -60,6 +64,5 @@ export default class LocalObserverTransport implements RpcTransport {
 }
 
 function _isEventEmitter(obj: any): boolean {
-  return typeof(obj === 'object') && [ 'on', 'emit', 'removeListener' ].every(m => typeof obj[m] === 'function');
+  return typeof obj === 'object' && [ 'on', 'emit', 'removeListener' ].every(m => typeof obj[m] === 'function');
 }
-
