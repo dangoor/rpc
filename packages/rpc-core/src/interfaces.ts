@@ -159,7 +159,7 @@ export interface DelegateOpts {
    * @param methodName
    * @param methodArgs
    */
-  shouldRun?: (delegate: object, methodName: string, ...methodArgs: any[]) => boolean;
+  shouldRun?: Set<string> | string[] | ((methodName: string, delegate: object, ...methodArgs: any[]) => boolean);
 
   /**
    * Override `this` binding on the delegate object when it is called.

@@ -3,7 +3,7 @@ import {waitMs} from "../test-support/time-support";
 
 
 describe('@wranggle/rpc-core/request-handler', () => {
-  let requestHandler;
+  let requestHandler: RequestHandler;
 
 
   const fixturedBuild = () => {
@@ -39,23 +39,24 @@ describe('@wranggle/rpc-core/request-handler', () => {
   });
 
   test('handle and decorate uncaught error in sync request handler', async () => {
-    let err;
+    let err: any;
     requestHandler.requestHandlerOpts({ senderId: 'someEndpoint' });
-    await requestHandler.onValidatedRequest('kaboom').catch(reason => err = reason);
+    await requestHandler.onValidatedRequest('kaboom', []).catch(reason => err = reason);
+    expect(err).toBeDefined();
     expect(err.endpoint).toBe('someEndpoint');
     expect(err.message).toBe('KABOOM!');
     expect(err.methodName).toBe('kaboom');
   });
 
   test('handle uncaught error in async request handler', async () => {
-    let err;
+    let err: any;
     await requestHandler.onValidatedRequest('slowKaboom', [ 3 ]).catch(reason => err = reason);
     expect(err.message).toBe('kah...boom');
   });
 
 
   test('reject missing methods', () => {
-    return requestHandler.onValidatedRequest('missing').catch(err => {
+    return requestHandler.onValidatedRequest('missing', []).catch(err => {
       expect(err.errorCode).toBe(MissingMethodErrorCode);
     });
   });
@@ -63,7 +64,7 @@ describe('@wranggle/rpc-core/request-handler', () => {
   describe('delegated handler', () => {
     test('search multiple delegates', async () => {
       requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
-      const result = await requestHandler.onValidatedRequest('more');
+      const result = await requestHandler.onValidatedRequest('more', []);
       expect(result).toBe(true);
     });
 
@@ -71,7 +72,7 @@ describe('@wranggle/rpc-core/request-handler', () => {
       requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
       let error;
       try {
-        await requestHandler.onValidatedRequest('more');
+        await requestHandler.onValidatedRequest('more', []);
       } catch (reason) {
         error = reason;
       }
@@ -82,7 +83,7 @@ describe('@wranggle/rpc-core/request-handler', () => {
       requestHandler.addRequestHandlerDelegate(new ChildDelegateClass());
       let error;
       try {
-        await requestHandler.onValidatedRequest('more');
+        await requestHandler.onValidatedRequest('more', []);
       } catch (reason) {
         error = reason;
       }
@@ -90,39 +91,39 @@ describe('@wranggle/rpc-core/request-handler', () => {
     });
 
     test('reject when shouldRun filter option returns false', () => {
-      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => false });
-      return requestHandler.onValidatedRequest('more').catch(reason => {
+      requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: (...args: any) => false });
+      return requestHandler.onValidatedRequest('more', []).catch(reason => {
         expect(reason.errorCode).toBe(MissingMethodErrorCode);
       });
     });
 
     test('permit method when shouldRun filter option returns true', async () => {
       requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { shouldRun: () => true });
-      const result = await requestHandler.onValidatedRequest('more');
+      const result = await requestHandler.onValidatedRequest('more', []);
       expect(result).toBe(true);
     });
 
     test('permit inherited methods when option enabled', async () => {
       requestHandler.addRequestHandlerDelegate(new ChildDelegateClass(), { ignoreInherited: false });
-      const result = await requestHandler.onValidatedRequest('more');
+      const result = await requestHandler.onValidatedRequest('more', []);
       expect(result).toBe(true);
     });
 
     test('use delegate object as context by default', async () => {
       requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass());
-      await requestHandler.onValidatedRequest('count');
-      const result = await requestHandler.onValidatedRequest('count');
+      await requestHandler.onValidatedRequest('count', []);
+      const result = await requestHandler.onValidatedRequest('count', []);
       expect(result).toBe(2);
     });
 
     test('accept passed in context as an option', async () => {
       requestHandler.addRequestHandlerDelegate(new AnotherDelegatedClass(), { context: { _count: 400 }});
-      const result = await requestHandler.onValidatedRequest('count');
+      const result = await requestHandler.onValidatedRequest('count', []);
       expect(result).toBe(401);
     });
 
     test('do not permit calls to "constructor"', () => {
-      return requestHandler.onValidatedRequest('constructor', 'val').catch(reason => {
+      return requestHandler.onValidatedRequest('constructor', [ 'val' ]).catch(reason => {
         expect(reason.errorCode).toBe(MissingMethodErrorCode);
       });
     });
@@ -131,11 +132,13 @@ describe('@wranggle/rpc-core/request-handler', () => {
   describe('registering named/specific functions', () => {
     test('accept a "this" context', async () => {
       const fn = function () {
+        // @ts-ignore
         this._count += 10;
+        // @ts-ignore
         return this._count;
       };
       requestHandler.addRequestHandler('tenCount', fn, { _count: 100 });
-      const result = await requestHandler.onValidatedRequest('tenCount');
+      const result = await requestHandler.onValidatedRequest('tenCount', []);
       expect(result).toBe(110);
     });
 
@@ -145,8 +148,8 @@ describe('@wranggle/rpc-core/request-handler', () => {
         bb: async () => 22,
       };
       requestHandler.addRequestHandlers(handlers);
-      const res_aa = await requestHandler.onValidatedRequest('aa');
-      const res_bb = await requestHandler.onValidatedRequest('bb');
+      const res_aa = await requestHandler.onValidatedRequest('aa', []);
+      const res_bb = await requestHandler.onValidatedRequest('bb', []);
       expect(res_aa).toBe(11);
       expect(res_bb).toBe(22);
     });

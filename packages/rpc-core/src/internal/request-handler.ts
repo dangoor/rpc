@@ -32,6 +32,15 @@ export default class RequestHandler {
       throw new Error('Expecting an object containing request handlers');
     }
     opts = Object.assign({ context: delegate }, DefaultDelegateOpts, opts);
+    if (Array.isArray(opts.shouldRun)) {
+      opts.shouldRun = new Set(opts.shouldRun);
+    }
+    if (_isPermissionSet(opts.shouldRun)) {
+      opts.shouldRun = (methodName: string, delegate: object, ...userArgs: any[]) => {
+        // @ts-ignore
+        return opts.shouldRun.has(methodName);
+      }
+    }
     this._requestHandlerDelegateHolders.push({ delegate, opts });
   }
 
@@ -72,7 +81,7 @@ export default class RequestHandler {
         if (opts.ignoreInherited && !(delegate.hasOwnProperty(methodName) || Object.getPrototypeOf(delegate).hasOwnProperty(methodName))) {
           return false;
         }
-        if (typeof opts.shouldRun === 'function' && opts.shouldRun(delegate, methodName, ...userArgs) !== true) {
+        if (typeof opts.shouldRun === 'function' && opts.shouldRun(methodName, delegate, ...userArgs) !== true) {
           return false;
         }
         return true;
@@ -111,6 +120,10 @@ export default class RequestHandler {
       endpoint: this.senderId,
     }, err, { message, fileName, lineNumber }, extra);
   }
+}
+
+function _isPermissionSet(obj: any): boolean {
+  return obj && [ 'has', 'keys' ].every(k => typeof obj[k] === 'function');
 }
 
 export {
