@@ -1,11 +1,17 @@
 # `@wranggle/rpc-core`
 
-> TODO: description
+This is the main WranggleRpc endpoint class.
 
-## Usage
+Most of it is documented at the [topmost README](/wranggle/rpc). 
 
-```
-const rpcCore = require('@wranggle/rpc-core');
 
-// TODO: DEMONSTRATE API
-```
+
+## LocalObserverTransport
+
+todo
+
+
+
+## Custom Transport
+
+todo
