@@ -3,6 +3,7 @@ import LocalObserverTransport, {LocalObserverTransportOpts} from 'rpc-core/src/l
 import BrowserExtensionTransport from 'rpc-browser-extension-transport/src/browser-extension-transport';
 import PostmessageTransport from 'rpc-postmessage-transport/src/postmessage-transport';
 import ElectronTransport from 'rpc-electron-transport/src/electron-transport';
+import WebSocketTransport from 'rpc-websocket-transport/src/websocket-transport';
 import Relay from 'rpc-relay/src/relay';
 import {IDict, RpcTransport, RpcOpts } from "rpc-core/src/interfaces";
 
@@ -14,6 +15,7 @@ const TransportClassByShortcut = <IDict<Klass>>{
   postmessage: PostmessageTransport,
   postMessage: PostmessageTransport,
   localObserver: LocalObserverTransport,
+  websocket: WebSocketTransport,
 };
 Object.keys(TransportClassByShortcut).forEach((shortcut: string) => {
   WranggleRpc.registerTransport(shortcut, (opts: any) => new TransportClassByShortcut[shortcut](opts));
@@ -26,6 +28,7 @@ export {
   LocalObserverTransport,
   PostmessageTransport,
   Relay,
+  WebSocketTransport,
   WranggleRpc,
 }
 

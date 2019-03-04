@@ -22,7 +22,7 @@ type PreparseFilter = (rawPayload: RequestPayload | ResponsePayload) => boolean 
 export default class Router {
   private _pendingRequests = <IDict<RemoteRequest>>{};
   private _finishedRequestIds = new Set<string>(); // todo: @wranggle/rotating-cache to clear/expire (not very big but a memory leak as written.)
-  private transport?: RpcTransport | void;
+  transport?: RpcTransport | void;
   private _stopped = false;
   private _rootOpts = <Partial<RpcOpts>>{};
   private _onValidatedRequest: (methodName: string, userArgs: any[]) => Promise<any>;

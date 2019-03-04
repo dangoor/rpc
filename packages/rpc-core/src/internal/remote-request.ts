@@ -1,9 +1,9 @@
 import FlightReceipt from "./flight-receipt";
 import {RequestOpts, RequestPayload, RemotePromise} from "../interfaces";
 import buildPromiseResolver, {PromiseResolver} from "../util/promise-resolver";
+// @ts-ignore
+import kvid from 'kvid';
 
-
-const kvid = require('kvid');
 
 
 const DefaultRequestOpts = {

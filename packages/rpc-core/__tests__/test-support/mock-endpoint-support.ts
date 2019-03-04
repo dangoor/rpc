@@ -2,7 +2,7 @@ import LocalObserverTransport, {LocalObserverTransportOpts} from '../../src/loca
 import WranggleRpc from '../../src/rpc-core';
 import {EventEmitter} from 'events';
 import {DelegateOpts} from "../../src/interfaces";
-import {IDict, RpcOpts} from "rpc-core/src/interfaces";
+import {IDict, RpcOpts} from "../../src/interfaces";
 
 
 export interface IFakeConnection<T> {
@@ -67,9 +67,5 @@ export function mockConnection<T>(opts=<IMockConnectionOpts<T>>{}): IFakeConnect
   }
 }
 
-
-export function buildLocalObserverTransport(opts=<Partial<LocalObserverTransportOpts>>{}) {
-  return new LocalObserverTransport(new EventEmitter(), opts);
-}
 
 

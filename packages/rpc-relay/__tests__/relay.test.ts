@@ -11,8 +11,13 @@ describe('@wranggle/rpc-relay', () => {
   let relayTransport: Relay;
 
   const buildRpc = () => {
-    leftTransport = new LocalObserverTransport(new EventEmitter(), { messageEventName: 'leftEvent' });
-    rightTransport = new LocalObserverTransport(new EventEmitter(), { messageEventName: 'rightEvent' });
+    leftTransport = new LocalObserverTransport({
+      observer: new EventEmitter(),
+      messageEventName: 'leftEvent' });
+    rightTransport = new LocalObserverTransport({
+      observer: new EventEmitter(),
+      messageEventName: 'rightEvent'
+    });
     leftRpc = new WranggleRpc<any>({ transport: leftTransport, senderId: 'fakeLeft' });
     rightRpc = new WranggleRpc<any>({ transport: rightTransport, senderId: 'fakeRight' });
     _mockCrossoverMessaging(leftTransport, rightTransport);

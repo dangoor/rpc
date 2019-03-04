@@ -3,8 +3,8 @@ import Router from "./internal/router";
 import RequestHandler from "./internal/request-handler";
 import {extractTransportOpts, registerTransport} from "./internal/transport-construction";
 import {DelegateOpts, IDict, RequestOpts, RpcTransport, RpcOpts, WranggleRpcTs, RemotePromise} from "./interfaces";
-
-const kvid = require('kvid');
+// @ts-ignore
+import kvid from 'kvid';
 
 
 
@@ -138,6 +138,9 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
   //   return this.router.checkConnectionStatus(opts); // TODO: not yet implemented
   // }
 
+  getTransport(): RpcTransport | void {
+    return this.router.transport;
+  }
   get senderId(): string {
     return this._rootOpts.senderId;
   }

@@ -101,6 +101,12 @@ export interface RpcOpts {
    * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
    */
   localObserver: TransportConstructionOpts,
+
+  /**
+   * Shortcut for constructing LocalObserverTransport instance.
+   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
+   */
+  websocket: TransportConstructionOpts,
 }
 type TransportConstructionOpts = any;
 

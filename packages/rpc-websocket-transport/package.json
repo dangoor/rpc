@@ -1,0 +1,44 @@
+{
+  "name": "@wranggle/rpc-websocket-transport",
+  "version": "0.1.0",
+  "description": "WranggleRpc transport for WebSocket clients and servers",
+  "scripts": {
+    "tsc": "tsc",
+    "test": "jest"
+  },
+  "main": "out/websocket-transport.js",
+  "files": [
+    "out"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Jeff Ferber <jeff@wranggle.com>",
+  "homepage": "https://github.com/wranggle/rpc#readme",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wranggle/rpc.git"
+  },
+  "keywords": [
+    "wranggle-rpc",
+    "rpc",
+    "websocket"
+  ],
+  "bugs": {
+    "url": "https://github.com/wranggle/rpc/issues"
+  },
+  "todos": [
+    {
+      "todo:": "restore reconnecting-websocket once they fix constructor. See notes in src/hacked-reconnecting-websocket/README.md",
+      "brokenVersion": { "reconnecting-websocket": "^4.1.10" }
+    }
+  ],
+  "dependencies": {
+    "fast-safe-stringify": "^2.0.6"
+  },
+  "devDependencies": {
+    "@types/ws": "^6.0.1",
+    "ws": "^6.1.4"
+  }
+}

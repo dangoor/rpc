@@ -48,7 +48,9 @@ export function fakeFixturedConnection_1(): IFakeConnection<IFakeRemoteDelegate_
 }
 
 export function buildLocalObserverTransport(opts=<Partial<LocalObserverTransportOpts>>{}) {
-  return new LocalObserverTransport(new EventEmitter(), opts);
+  return new LocalObserverTransport(Object.assign({
+    observer: new EventEmitter()
+  }, opts));
 }
 
 
