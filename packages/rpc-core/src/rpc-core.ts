@@ -2,7 +2,7 @@ import RemoteRequest from "./internal/remote-request";
 import Router from "./internal/router";
 import RequestHandler from "./internal/request-handler";
 import { extractTransportOpts } from "./internal/transport-construction";
-import {DelegateOpts, IDict, RequestOpts, RpcTransport, RpcOpts, WranggleRpcTs, RemotePromise} from "./interfaces";
+import {DelegatedRequestHandlerOpts, IDict, RequestOpts, RpcTransport, RpcOpts, WranggleRpcTs, RemotePromise, NamedRequestHandlerOpts} from "./interfaces";
 // @ts-ignore
 import kvid from 'kvid';
 import {registerTransport} from "./transport-shortcut-registration";
@@ -36,7 +36,7 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
    * Incoming requests are passed to methods on the specified `delegate` object if it passes the `DelegateOpts` filters specified.
    *
    */
-  addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts) {
+  addRequestHandlerDelegate(delegate: any, opts?: DelegatedRequestHandlerOpts) {
     this.requestHandler.addRequestHandlerDelegate(delegate, opts);
   }
 
@@ -48,8 +48,8 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
    * @param context. Optional. Sets the "this" context of your function. Note/reminder: arrow functions do not have a "this" binding,
    *   so use a full "function" when setting this option.
    */
-  addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): void {
-    this.requestHandler.addRequestHandler(methodName, fn, context);
+  addRequestHandler(methodName: string, fn: (...args: any[]) => any, opts?: NamedRequestHandlerOpts): void {
+    this.requestHandler.addRequestHandler(methodName, fn, opts);
   }
 
   /**
@@ -58,8 +58,8 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
    * @param fnByMethodName
    * @param context
    */
-  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): void {
-    this.requestHandler.addRequestHandlers(fnByMethodName, context);
+  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, opts?: NamedRequestHandlerOpts): void {
+    this.requestHandler.addRequestHandlers(fnByMethodName, opts);
   }
 
   /**
@@ -143,6 +143,11 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
     return this.router.transport;
   }
 
+  stopTransport(): void {
+    const transport = this.getTransport();
+    transport && transport.stopTransport();
+  }
+  
   getSenderId(): string {
     return this._rootOpts.senderId;
   }

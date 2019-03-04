@@ -5,7 +5,7 @@ export declare abstract class WranggleRpcTs<T> {
   
   protected constructor(rpcOpts?: Partial<RpcOpts>);
 
-  addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts): void;
+  addRequestHandlerDelegate(delegate: any, opts?: DelegatedRequestHandlerOpts): void;
 
 
   addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): void;
@@ -152,7 +152,7 @@ export interface RequestInfo {
   // include methodName and args?
 }
 
-export interface DelegateOpts {
+export interface DelegatedRequestHandlerOpts {
 
   /**
    * Ignores inherited methods, using Object.hasOwnProperty checks.
@@ -175,6 +175,19 @@ export interface DelegateOpts {
 
   /**
    * Override `this` binding on the delegate object when it is called.
+   */
+  context?: any;
+}
+
+export interface NamedRequestHandlerOpts {
+
+  /**
+   * When true, a Node.js style callback is added as the last parameter. When false, the function's result is used for the response. Default is false.
+   */
+  useCallback?: boolean;
+
+  /**
+   * Set `this` binding on the function. Reminder: cannot set "this" for arrow functions.
    */
   context?: any;
 }

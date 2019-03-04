@@ -35,6 +35,18 @@ describe('@wranggle/rpc-core/remote-request', () => {
     expect(f1 instanceof FlightReceipt);
   });
 
+  test('accept Node.js-style callbacks', async () => {
+    let testResult;
+    const cb = (err: any, res: string) => {
+      testResult = res;
+    };
+    const req = buildRequest('someMethod', 'whatever', cb);
+    expect(!!req.nodejsCallback).toBe(true);
+    req.buildPayload({});
+    await req.flightReceipt().resolveNow('ok');
+    expect(testResult).toBe('ok');
+  });
+
   describe('enforce timeout', () => {
     // todo: implement
   })

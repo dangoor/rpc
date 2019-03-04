@@ -63,10 +63,15 @@ export default class RemoteRequest {
   
   flightReceipt(): RemotePromise<any> | FlightReceipt {
     const receipt = this._ensureFlightReceipt();
-    if (this.nodejsCallback) {
+    const remotePromise = receipt._decoratedPromise();
+    const cb = this.nodejsCallback;
+    if (cb) {
+      remotePromise
+        .then((...results: any[]) => cb(null, ...results))
+        .catch((err: any) => cb(err));
       return receipt;
     } else {
-      return receipt._decoratedPromise();
+      return remotePromise;
     }
   }
 

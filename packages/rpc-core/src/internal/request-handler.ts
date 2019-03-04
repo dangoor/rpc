@@ -1,9 +1,10 @@
-import {DelegateOpts, IDict, RpcOpts} from "../interfaces";
+import {DelegatedRequestHandlerOpts, IDict, NamedRequestHandlerOpts, RpcOpts} from "../interfaces";
+import buildPromiseResolver from "../util/promise-resolver";
 
 
 interface IRequestHandlerDelegateHolder {
   delegate: object;
-  opts: DelegateOpts;
+  opts: DelegatedRequestHandlerOpts;
 }
 
 const MissingMethodErrorCode = 'MethodNotFound'; // todo: move to constants or a custom error type
@@ -13,9 +14,8 @@ const DefaultDelegateOpts = {
   ignoreInherited: true,
 };
 
-interface NamedRequestHandlerHolder {
+interface NamedRequestHandlerHolder extends NamedRequestHandlerOpts {
   fn: (...args: any[]) => any;
-  context: any;
 }
 export default class RequestHandler {
   private _rootOpts=<Partial<RpcOpts>>{};
@@ -27,7 +27,7 @@ export default class RequestHandler {
     this._rootOpts = opts;
   }
 
-  addRequestHandlerDelegate(delegate: any, opts?: DelegateOpts): void {
+  addRequestHandlerDelegate(delegate: any, opts?: DelegatedRequestHandlerOpts): void {
     if (typeof delegate !== 'object') {
       throw new Error('Expecting an object containing request handlers');
     }
@@ -44,31 +44,27 @@ export default class RequestHandler {
     this._requestHandlerDelegateHolders.push({ delegate, opts });
   }
 
-  addRequestHandler(methodName: string, fn: (...args: any[]) => any, context?: any): any {
+  addRequestHandler(methodName: string, fn: (...args: any[]) => any, opts=<NamedRequestHandlerOpts>{}): any {
     // note: intentionally accepts "_" prefix method names
-    this._namedRequestHandlerHolderByMethodName[methodName] = { fn, context };
+    this._namedRequestHandlerHolderByMethodName[methodName] = { fn, ...opts };
   }
 
-  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, context?: any): any {
+  addRequestHandlers(fnByMethodName: IDict<(...args: any[]) => any>, opts?: NamedRequestHandlerOpts): any {
     Object.keys(fnByMethodName).forEach((methodName) => {
       if (methodName.charAt(0) !== '_') {
-        this.addRequestHandler(methodName, fnByMethodName[methodName], context);
+        this.addRequestHandler(methodName, fnByMethodName[methodName], opts);
       }
     });
   }
 
   onValidatedRequest(methodName: string, userArgs: any[]): Promise<any> {
-    let context;
     if (!methodName || methodName === 'constructor') {
       return Promise.reject({ errorCode: MissingMethodErrorCode, methodName });
     }
     userArgs = userArgs || [];
-    let fn;
+
     const namedHolder = this._namedRequestHandlerHolderByMethodName[methodName];
-    if (namedHolder) {
-      fn = namedHolder.fn;
-      context = namedHolder.context;
-    }
+    let { fn, context, useCallback } = (namedHolder || {} as NamedRequestHandlerHolder);
     if (!fn) {
       const delegateHolder = this._requestHandlerDelegateHolders.find((holder: IRequestHandlerDelegateHolder): boolean => {
         const { delegate, opts } = holder;
@@ -95,13 +91,26 @@ export default class RequestHandler {
       return Promise.reject({errorCode: MissingMethodErrorCode, methodName});
     } else {
       try {
-        return Promise.resolve(fn.apply(context, userArgs)).catch(reason => {
-          if (typeof reason === 'object' && (reason.stack || reason instanceof Error)) {
-            return Promise.reject(this._applyUncaughtErrorData(reason, { methodName }));
-          } else {
-            return Promise.reject(reason);
-          }
-        });
+        if (useCallback) {
+          const { promise, resolve, reject } = buildPromiseResolver();
+          userArgs.push((err: any, ...results: any[]) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(...results);
+            }
+          });
+          fn.apply(context, userArgs);
+          return promise;
+        } else {
+          return Promise.resolve(fn.apply(context, userArgs)).catch(reason => {
+            if (typeof reason === 'object' && (reason.stack || reason instanceof Error)) {
+              return Promise.reject(this._applyUncaughtErrorData(reason, {methodName}));
+            } else {
+              return Promise.reject(reason);
+            }
+          });
+        }
       } catch (err) {
         // console.warn(`Uncaught error in "${methodName}" request handler:`, err);
         return Promise.reject(this._applyUncaughtErrorData(err, { methodName }));

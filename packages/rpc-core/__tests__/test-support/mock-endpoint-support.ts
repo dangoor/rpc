@@ -1,7 +1,7 @@
 import LocalObserverTransport, {LocalObserverTransportOpts} from '../../src/local-observer-transport';
 import WranggleRpc from '../../src/rpc-core';
 import {EventEmitter} from 'events';
-import {DelegateOpts} from "../../src/interfaces";
+import {DelegatedRequestHandlerOpts} from "../../src/interfaces";
 import {IDict, RpcOpts} from "../../src/interfaces";
 
 
@@ -19,7 +19,7 @@ export interface IMockEndpointOpts {
   rpcOpts?: Partial<RpcOpts>;
   requestHandlers?: IDict<(...args: any[]) => any>;
   requestDelegate?: object;
-  requestDelegateOpts?: DelegateOpts;
+  requestDelegateOpts?: DelegatedRequestHandlerOpts;
 }
 
 export interface IMockEndpoint<T> {

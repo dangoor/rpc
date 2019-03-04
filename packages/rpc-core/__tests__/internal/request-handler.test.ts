@@ -137,9 +137,18 @@ describe('@wranggle/rpc-core/request-handler', () => {
         // @ts-ignore
         return this._count;
       };
-      requestHandler.addRequestHandler('tenCount', fn, { _count: 100 });
+      requestHandler.addRequestHandler('tenCount', fn, { context: { _count: 100 } });
       const result = await requestHandler.onValidatedRequest('tenCount', []);
       expect(result).toBe(110);
+    });
+
+    test('await callback when useCallback option present', async () => {
+      const handler = (letter: string, cb: (err, result) => void) => {
+        setTimeout(() => cb(null, `${letter}${letter}!`), 5);
+      };
+      requestHandler.addRequestHandler('oldschool', handler, { useCallback: true });
+      const result = await requestHandler.onValidatedRequest('oldschool', [ 'n']);
+      expect(result).toBe('nn!');
     });
 
     test('bulk register', async () => {
