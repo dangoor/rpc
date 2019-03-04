@@ -1,8 +1,8 @@
 const http = require('http');
 const WebSocket = require('ws');
 import { Server } from 'ws';
-import WebSocketTransport, {WebSocketTransportOpts} from "../src/websocket-transport";
 import WranggleRpc from "rpc-core/src/rpc-core";
+import WebSocketTransport, {WebSocketTransportOpts} from "../src/websocket-transport";
 
 
 describe('@wranggle/rpc-websocket-transport.ts', () => {
@@ -19,7 +19,7 @@ describe('@wranggle/rpc-websocket-transport.ts', () => {
     wss.on('connection', (socket: any) => {
       lastServerSocket = socket;
       serverRpc = new WranggleRpc<any>({ 
-        transport: new WebSocketTransport({ serverSocket: socket })
+        websocket: { serverSocket: socket }
       });
       serverRpc.addRequestHandler('hello', (val) => `Hello ${val}`);
     });

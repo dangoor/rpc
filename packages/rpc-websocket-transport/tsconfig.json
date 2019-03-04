@@ -6,7 +6,7 @@
    "src/*": [ "./src/*" ],
    "packages": [ "../*" ]
   },
-  "esModuleInterop": true
+  "moduleResolution": "Node"
  },
  "include": [
    "./src"

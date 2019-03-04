@@ -1,12 +1,7 @@
 import {RpcTransport, IDict, RpcOpts} from "../interfaces";
+import {getTransportRegistry} from "../transport-shortcut-registration";
 
 
-type TransportFactory = (opts: any) => RpcTransport;
-const transportFactoryByType = <IDict<TransportFactory>>{};
-
-export function registerTransport(transportType: string, transportFactory: TransportFactory): void {
-  transportFactoryByType[transportType] = transportFactory;
-}
 
 // todo: put transport shortcut directly on RpcOpts. Eg: `new WranggleRpc({ electron: myElectronOpts })`
 //   I don't feel like a typescript research project at the moment.. need to check if each transport could declare the same module or whatever and add it own option
@@ -31,7 +26,7 @@ export function buildTransport(val: any): RpcTransport | void{
       transportOpts = {};
     }
     if (transportType) {
-      transport = transportFactoryByType[transportType](transportOpts);
+      transport = getTransportRegistry()[transportType](transportOpts);
     }
   }
   if (!transport) {
@@ -56,7 +51,7 @@ export function extractTransportOpts(rpcOpts: Partial<RpcOpts>): Partial<RpcOpts
 }
 
 function _hasTransportType(transportType: string): boolean {
-  return !!(transportType && transportFactoryByType[transportType]);
+  return !!(transportType && getTransportRegistry()[transportType]);
 }
 
 function _isTransport(val: any): boolean {
@@ -65,3 +60,4 @@ function _isTransport(val: any): boolean {
   }
   return val && [ 'sendMessage', 'listen', 'stopTransport' ].every(m => typeof val[m] === 'function');
 }
+

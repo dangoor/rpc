@@ -1,5 +1,6 @@
 import {EndpointInfo, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 import {RequestPayload} from "rpc-core/src/interfaces";
+import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 
 export interface ElectronTransportOpts {
@@ -110,6 +111,8 @@ function _isIpcSender(obj: any): boolean {
   return obj && typeof obj.send === 'function';
 }
 
+
+registerTransport('electron', (opts: ElectronTransportOpts) => new ElectronTransport(opts));
 
 
 type ElectronListener = (evt: any, data: any) => void; // todo: Electron types (for Event)

@@ -1,5 +1,6 @@
 import {EventEmitter} from "events"; 
 import {EndpointInfo, RequestPayload, ResponsePayload, RpcOpts, RpcTransport} from "./interfaces";
+import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 
 export interface LocalObserverTransportOpts {
@@ -66,3 +67,6 @@ export default class LocalObserverTransport implements RpcTransport {
 function _isEventEmitter(obj: any): boolean {
   return typeof obj === 'object' && [ 'on', 'emit', 'removeListener' ].every(m => typeof obj[m] === 'function');
 }
+
+
+registerTransport('localObserver', (opts: LocalObserverTransportOpts) => new LocalObserverTransport(opts));

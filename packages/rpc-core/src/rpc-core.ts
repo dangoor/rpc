@@ -1,10 +1,11 @@
 import RemoteRequest from "./internal/remote-request";
 import Router from "./internal/router";
 import RequestHandler from "./internal/request-handler";
-import {extractTransportOpts, registerTransport} from "./internal/transport-construction";
+import { extractTransportOpts } from "./internal/transport-construction";
 import {DelegateOpts, IDict, RequestOpts, RpcTransport, RpcOpts, WranggleRpcTs, RemotePromise} from "./interfaces";
 // @ts-ignore
 import kvid from 'kvid';
+import {registerTransport} from "./transport-shortcut-registration";
 
 
 
@@ -156,3 +157,6 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
 }
 
 
+// todo: don't touch global namespace once build system settles and WranggleRpc.registerTransport can be called via import/require
+// @ts-ignore
+global.WranggleRpc = global.WranggleRpc || WranggleRpc;

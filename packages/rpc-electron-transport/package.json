@@ -19,7 +19,6 @@
     "url": "git+https://github.com/wranggle/rpc.git"
   },
   "devDependencies": {
-    "@wranggle/rpc-core": "^0.1.0"
   },
   "keywords": [
     "wranggle-rpc",

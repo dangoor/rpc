@@ -1,7 +1,9 @@
+// import WranggleRpc from '@wranggle/rpc-core';
 import {RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 // @ts-ignore
 import stringify from 'fast-safe-stringify';
 import ReconnectingWebSocket from './hacked-reconnecting-websocket/reconnecting-websocket';
+import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 
 export interface WebSocketTransportOpts {
@@ -135,7 +137,6 @@ export default class WebSocketTransport implements RpcTransport {
     return Promise.resolve(typeof serverSocket === 'function' ? serverSocket() : serverSocket);
   }
 
-
 }
 
 function _extractRawPayloadString(eventOrData: any) {
@@ -146,6 +147,10 @@ function _extractRawPayloadString(eventOrData: any) {
   }
 
 }
+
+registerTransport('websocket', (opts: WebSocketTransportOpts) => new WebSocketTransport(opts));
+
+
 
 interface WebSocket {
   send: (data: any) => void;

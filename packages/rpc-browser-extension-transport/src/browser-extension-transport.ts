@@ -1,5 +1,6 @@
 import {EndpointInfo, RequestPayload, ResponsePayload, RpcTransport} from "rpc-core/src/interfaces";
 import * as chromeApi from './chrome-manifest-2-api';
+import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 
 type ChromeListener = (payload: (RequestPayload | ResponsePayload), sender: any) => void;
@@ -120,3 +121,6 @@ export default class BrowserExtensionTransport implements RpcTransport {
     return opts;
   }
 }
+
+
+registerTransport('browserExtension', (opts: BrowserExtensionTransportOpts) => new BrowserExtensionTransport(opts));

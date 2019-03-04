@@ -8,19 +8,6 @@ import Relay from 'rpc-relay/src/relay';
 import {IDict, RpcTransport, RpcOpts } from "rpc-core/src/interfaces";
 
 
-const TransportClassByShortcut = <IDict<Klass>>{
-  chrome: BrowserExtensionTransport,
-  browserExtension: BrowserExtensionTransport,
-  electron: ElectronTransport,
-  postmessage: PostmessageTransport,
-  postMessage: PostmessageTransport,
-  localObserver: LocalObserverTransport,
-  websocket: WebSocketTransport,
-};
-Object.keys(TransportClassByShortcut).forEach((shortcut: string) => {
-  WranggleRpc.registerTransport(shortcut, (opts: any) => new TransportClassByShortcut[shortcut](opts));
-});
-
 export default WranggleRpc; 
 export {
   BrowserExtensionTransport,

@@ -31,10 +31,13 @@
   "todos": [
     {
       "todo:": "restore reconnecting-websocket once they fix constructor. See notes in src/hacked-reconnecting-websocket/README.md",
-      "brokenVersion": { "reconnecting-websocket": "^4.1.10" }
+      "brokenVersion": {
+        "reconnecting-websocket": "^4.1.10"
+      }
     }
   ],
   "dependencies": {
+    "@wranggle/rpc-core": "*",
     "fast-safe-stringify": "^2.0.6"
   },
   "devDependencies": {

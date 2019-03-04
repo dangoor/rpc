@@ -1,6 +1,8 @@
 const path = require('path');
 const packageDir = path.resolve(__dirname, 'packages');
 
+// jestjs.io trumpets "zero config".. sigh... this ts/jest/lerna/rollup combo is the biggest headache of the project
+
 module.exports = {
   clearMocks: true,
   globals: {
@@ -15,7 +17,7 @@ module.exports = {
   // roots: ['<rootDir>packages'],
   testMatch: ['**/__tests__/*.+(ts|js)', '**/*.test.+(ts|js)'],
   transform: {
-    '^.+\\.(ts)$': 'ts-jest',
+    '^.+\\.(ts)$': 'ts-jest'
   },
   moduleDirectories: [
     "node_modules",
