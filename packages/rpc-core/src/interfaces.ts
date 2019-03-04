@@ -33,8 +33,14 @@ export declare abstract class WranggleRpcTs<T> {
 
 
 export interface RpcOpts {
+  /**
+   * Channel name or id. Unless the remote endpoint uses the exact same *channel* value, WranggleRpc will ignore its remote requests. *channel*.
+   */
   channel: string;
 
+  /**
+   * A default
+   */
   allRequestOpts: RequestOpts;
 
   /**
@@ -49,7 +55,7 @@ export interface RpcOpts {
 
 
   /**
-   * A string including on message payload.  Generated randomly by default but can be specified here for debug purposes.
+   * A string included on message payload.  Generated randomly by default but can be specified here for debug purposes.
    * Value must be different from the other endpoint.
    */
   senderId: string;

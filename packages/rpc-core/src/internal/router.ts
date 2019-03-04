@@ -111,10 +111,10 @@ export default class Router {
         console.error('Error in preparseAllIncomingMessages filter. Invalidating incoming message.', err);
         current = false;
       }
-      if (current === false) {
-        parsedPayload = false;
-      } else if (typeof current === 'object') {
+      if (typeof current === 'object') {
         parsedPayload = current;
+      } else if (current !== true) {
+        parsedPayload = false;
       }
     });
     if (parsedPayload.requestId) {

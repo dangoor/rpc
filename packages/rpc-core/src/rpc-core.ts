@@ -141,7 +141,12 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
   getTransport(): RpcTransport | void {
     return this.router.transport;
   }
-  get senderId(): string {
+
+  getSenderId(): string {
+    return this._rootOpts.senderId;
+  }
+
+  get senderId(): string { // todo: deprecate/remove
     return this._rootOpts.senderId;
   }
 
