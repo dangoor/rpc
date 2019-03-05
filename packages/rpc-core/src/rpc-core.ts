@@ -161,7 +161,3 @@ export default class WranggleRpc<T> implements WranggleRpcTs<T> { // todo: renam
   }
 }
 
-
-// todo: don't touch global namespace once build system settles and WranggleRpc.registerTransport can be called via import/require
-// @ts-ignore
-global.WranggleRpc = global.WranggleRpc || WranggleRpc;

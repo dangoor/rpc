@@ -129,9 +129,17 @@ export default class FlightReceipt {
     this.status = status;
     const { resolve, reject } = this.responseResolver;
     if (error) {
-      reject(error);
+      try {
+        reject(error);
+      } catch (err) {
+        console.error('Uncaught error in rejected RemotePromise', this.info(), err);
+      }
     } else {
-      resolve(...result);
+      try {
+        resolve(...result);
+      } catch (err) {
+        console.error('Uncaught error in RemotePromise response handler', this.info(), err);
+      }
     }
   }
 
