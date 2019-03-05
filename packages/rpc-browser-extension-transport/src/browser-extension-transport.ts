@@ -83,6 +83,7 @@ export default class BrowserExtensionTransport implements RpcTransport {
       if (typeof permitMessage === 'function' && permitMessage(payload, sender) !== true) {
         return;
       }
+      payload.transportMeta.sender = sender;
       onMessage(payload);
     };
     
@@ -94,9 +95,9 @@ export default class BrowserExtensionTransport implements RpcTransport {
       return;
     }
     if (this._opts.sendToTabId) {
-      chromeApi.sendMessageToTab(this._opts.sendToTabId, payload, chromeApi.warnIfErrorCb());
+      chromeApi.sendMessageToTab(this._opts.sendToTabId, payload);
     } else {
-      chromeApi.sendRuntimeMessage(payload, chromeApi.warnIfErrorCb());
+      chromeApi.sendRuntimeMessage(payload);
     }
   }
 

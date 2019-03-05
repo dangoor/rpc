@@ -33,9 +33,10 @@ export function removeMessageListener(listener: Callback) {
 }
 
 export function warnIfErrorCb() {
-  return () => {
-    if (chrome.runtime.lastError) {
-      console.warn(chrome.runtime.lastError);
+  return (err: any) => {
+    if (chrome.runtime.lastError || err) {
+      console.warn(chrome.runtime.lastError || err);
     }
+    return Promise.resolve();
   }
 }
