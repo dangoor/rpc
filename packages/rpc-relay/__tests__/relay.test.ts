@@ -1,5 +1,5 @@
 import {RequestPayload, ResponsePayload} from "rpc-core/src/interfaces";
-const EventEmitter = require('events');
+import { EventEmitter } from 'events';
 import LocalObserverTransport from 'rpc-core/src/local-observer-transport';
 import Relay from "../src/relay";
 import WranggleRpc from "rpc-core/src/rpc-core";
@@ -7,25 +7,35 @@ import WranggleRpc from "rpc-core/src/rpc-core";
 
 describe('@wranggle/rpc-relay', () => {
   let leftRpc: WranggleRpc<any>, rightRpc: WranggleRpc<any>;
-  let leftTransport: LocalObserverTransport, rightTransport: LocalObserverTransport;
+  let middleLeftTransport: LocalObserverTransport, middleRightTransport: LocalObserverTransport;
   let relayTransport: Relay;
 
   const buildRpc = () => {
-    leftTransport = new LocalObserverTransport({
-      observer: new EventEmitter(),
+    const leftObserver = new EventEmitter();
+    const rightObserver = new EventEmitter();
+    const leftTransport = new LocalObserverTransport({
+      observer: leftObserver,
       messageEventName: 'leftEvent' });
-    rightTransport = new LocalObserverTransport({
-      observer: new EventEmitter(),
+    leftRpc = new WranggleRpc<any>({ transport: leftTransport, senderId: 'fakeLeft' });
+
+    const rightTransport = new LocalObserverTransport({
+      observer: rightObserver,
       messageEventName: 'rightEvent'
     });
-    leftRpc = new WranggleRpc<any>({ transport: leftTransport, senderId: 'fakeLeft' });
     rightRpc = new WranggleRpc<any>({ transport: rightTransport, senderId: 'fakeRight' });
-    _mockCrossoverMessaging(leftTransport, rightTransport);
-    _mockCrossoverMessaging(rightTransport, leftTransport);
+
+    middleLeftTransport = new LocalObserverTransport({
+      observer: leftObserver,
+      messageEventName: 'leftEvent'
+    });
+    middleRightTransport = new LocalObserverTransport({
+      observer: rightObserver,
+      messageEventName: 'rightEvent'
+    });
 
     relayTransport = new Relay({
-      left: leftTransport,
-      right: rightTransport,
+      left: middleLeftTransport,
+      right: middleRightTransport,
       relayId: 'fakeMiddle'
     });
   };
@@ -40,24 +50,14 @@ describe('@wranggle/rpc-relay', () => {
 
   test('stopTransport stops left and right sides', () => {
     buildRpc();
-    leftTransport.stopTransport = jest.fn();
-    rightTransport.stopTransport = jest.fn();
-    relayTransport.stopTransport();
-    expect(leftTransport.stopTransport).toHaveBeenCalled();
-    expect(rightTransport.stopTransport).toHaveBeenCalled();
+    middleLeftTransport.stopTransport = jest.fn();
+    middleRightTransport.stopTransport = jest.fn();
+    relayTransport.stopTransports();
+    expect(middleLeftTransport.stopTransport).toHaveBeenCalled();
+    expect(middleRightTransport.stopTransport).toHaveBeenCalled();
   });
   
   // maybe todo: test('adds relayId to payload transportMeta', () => { });
 
 });
-
-
-
-function _mockCrossoverMessaging(from: LocalObserverTransport, to: LocalObserverTransport) {
-  from.sendMessage = (payload: RequestPayload | ResponsePayload) => {
-    // @ts-ignore
-    to.observer.emit(to.eventName, payload);
-  };
-}
-
 

@@ -35,12 +35,6 @@ export default class RequestHandler {
     if (Array.isArray(opts.shouldRun)) {
       opts.shouldRun = new Set(opts.shouldRun);
     }
-    if (_isPermissionSet(opts.shouldRun)) {
-      opts.shouldRun = (methodName: string, delegate: object, ...userArgs: any[]) => {
-        // @ts-ignore
-        return opts.shouldRun.has(methodName);
-      }
-    }
     this._requestHandlerDelegateHolders.push({ delegate, opts });
   }
 
@@ -77,7 +71,9 @@ export default class RequestHandler {
         if (opts.ignoreInherited && !(delegate.hasOwnProperty(methodName) || Object.getPrototypeOf(delegate).hasOwnProperty(methodName))) {
           return false;
         }
-        if (typeof opts.shouldRun === 'function' && opts.shouldRun(methodName, delegate, ...userArgs) !== true) {
+        if (_isPermissionSet(opts.shouldRun) && !(opts.shouldRun as any).has(methodName)) {
+          return false;
+        } else if (typeof opts.shouldRun === 'function' && opts.shouldRun.call(null, methodName, delegate, ...userArgs) !== true) {
           return false;
         }
         return true;

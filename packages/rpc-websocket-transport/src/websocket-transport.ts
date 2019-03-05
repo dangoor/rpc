@@ -6,6 +6,9 @@ import ReconnectingWebSocket from './hacked-reconnecting-websocket/reconnecting-
 import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 
+const WebSocketEventTypes = [ 'open', 'close', 'message', 'error' ];
+
+
 export interface WebSocketTransportOpts {
   /**
    * This option creates a WebSocket client connection for your WranggleRpc endpoint.
@@ -49,6 +52,8 @@ export default class WebSocketTransport implements RpcTransport {
   private _promisedSocket: Promise<WebSocket>;
   private _listenHandler?: (payload: RequestPayload | ResponsePayload) => void;
   private readonly isClientSide: boolean;
+  private _ws?: WebSocket;
+  endpointSenderId!: string | void;
 
   constructor(opts: WebSocketTransportOpts) {
     opts = opts || {};
@@ -71,6 +76,7 @@ export default class WebSocketTransport implements RpcTransport {
   listen(rpcHandler: (payload: (RequestPayload | ResponsePayload)) => void): void {
     this._removeExistingRpcListener();
     this._listenHandler = (...args: any[]) => {
+      // @ts-ignore
       if (!this._isStopped) {
         let payload: RequestPayload | ResponsePayload;
         let rawData = _extractRawPayloadString(args[args.length - 1]);
@@ -83,7 +89,10 @@ export default class WebSocketTransport implements RpcTransport {
       }
     };
     this._promisedSocket.then((ws) => {
-      this._listenHandler && ws.addEventListener('message', this._listenHandler);
+      this._ws = ws;
+      if (this._listenHandler) {
+        ws.addEventListener('message', this._listenHandler);
+      }
     });
   }
 
@@ -103,14 +112,42 @@ export default class WebSocketTransport implements RpcTransport {
   stopTransport(): void {
     this._isStopped = true;
     this._removeExistingRpcListener();
-    this._promisedSocket.then(ws => { // todo: option to skip socket.close(), for the case of a shared socket
-      // @ts-ignore
-      ws && ws.close();
+    this._promisedSocket.then((ws: any) => { // todo: option to skip socket.close(), for the case of a shared socket
+      WebSocketEventTypes.forEach((eventType: string) => {
+        delete ws[eventType];
+        if (typeof ws.removeEventListener === 'function') {
+          ws.removeEventListener(eventType);
+        }
+      });
+      ws && ws.close && ws.close();
+      this._ws = void(0);
     });
   }
 
   getPromisedWebSocket(): Promise<WebSocket> {
     return this._promisedSocket;
+  }
+
+  isOpenOrConnecting(): boolean {
+    const ws = this._ws as any;
+    if (!ws) {
+      return false;
+    } else {
+      const state = ws.readyState as any;
+      return state === 0 || state === 1 || state === ws['OPEN'] || state === ws['CONNECTING'];
+    }
+  }
+
+  addEventListener(eventName: string, listener: EventListener): void {
+    this.getPromisedWebSocket().then((ws: WebSocket) => {
+      ws.addEventListener(eventName, listener);
+    });
+  }
+
+  removeEventListener(eventName: string, listener: EventListener): void {
+    this.getPromisedWebSocket().then((ws: WebSocket) => {
+      ws.removeEventListener(eventName, listener);
+    });
   }
 
   _removeExistingRpcListener() {
@@ -125,7 +162,7 @@ export default class WebSocketTransport implements RpcTransport {
       throw new Error('Expecting EITHER clientSocket or websocketUrl, not both');
     }
     if (websocketUrl) {
-      return Promise.resolve((new ReconnectingWebSocket(websocketUrl) as WebSocket));
+      return Promise.resolve(WebSocketTransport.buildReconnectingWebSocket(websocketUrl) as WebSocket);
     } else if (clientSocket) {
       return Promise.resolve(typeof clientSocket === 'function' ? clientSocket() : clientSocket);
     } else {
@@ -137,6 +174,10 @@ export default class WebSocketTransport implements RpcTransport {
     return Promise.resolve(typeof serverSocket === 'function' ? serverSocket() : serverSocket);
   }
 
+  static buildReconnectingWebSocket(...args: any[]): ReconnectingWebSocket {
+    // @ts-ignore
+    return new ReconnectingWebSocket(...args);
+  }
 }
 
 function _extractRawPayloadString(eventOrData: any) {
@@ -149,7 +190,6 @@ function _extractRawPayloadString(eventOrData: any) {
 }
 
 registerTransport('websocket', (opts: WebSocketTransportOpts) => new WebSocketTransport(opts));
-
 
 
 interface WebSocket {

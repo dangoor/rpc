@@ -20,9 +20,10 @@ export function buildFakeRequestPayload(methodName: string, ...userArgs: any[]):
 
 export function buildFakeResponsePayload(methodName: string, ...responseArgs: any[]): ResponsePayload {
   const error = responseArgs.shift();
+  const resolveArgs = responseArgs;
   return {
     methodName,
-    error, responseArgs,
+    error, resolveArgs,
     respondingTo: DefaultFakeRequestId,
     senderId: DefaultRemoteSenderId,
     channel: DefaultFakeChannel,

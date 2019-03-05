@@ -93,7 +93,7 @@ describe('@wranggle/rpc-core/router', () => {
         expect(transport.sent.length).toBe(1);
         const payload = transport.sent[0] as ResponsePayload;
         expect(payload.respondingTo).toBe(pendingRequestId);
-        expect(payload.responseArgs).toEqual([ 'someResult' ]);
+        expect(payload.resolveArgs).toEqual([ 'someResult' ]);
       });
 
       test('send response when request handler rejects', async () => {
@@ -241,6 +241,7 @@ class MockTransport implements RpcTransport {
   sent = <Payload[]>[];
   received = <Payload[]>[];
   _onMessage?: (payload: Payload) => void;
+  endpointSenderId!: string | void;
 
   // IRpcTransport methods:
   listen(onMessage: (payload: Payload) => void): void {

@@ -19,6 +19,7 @@ export {
   WranggleRpc,
 }
 
+
 type Klass = new (...args: any[]) => RpcTransport;
 
 // todo: figure out how to extend/merge RpcOpts with transport shortcuts in typescript

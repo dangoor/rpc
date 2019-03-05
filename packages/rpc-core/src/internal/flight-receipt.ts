@@ -41,11 +41,14 @@ export default class FlightReceipt {
   }
 
   info(): RequestInfo {
-    const { requestedAt, completedAt, status } = this;
-    return { ...this.payload,
+    const { requestedAt, completedAt, status, payload } = this;
+
+    return {
+      requestId: payload.requestId,
       requestedAt: new Date(requestedAt),
       completedAt: completedAt ? new Date(completedAt) : void(0),
-      status
+      status,
+      requestPayload: payload
     };
   }
 

@@ -24,15 +24,19 @@ export interface RelayOpts {
 }
 
 
-export default class RelayTransports {
+export default class Relay {
   private readonly _relayId: string;
   private readonly _left: RpcTransport;
   private readonly _right: RpcTransport;
 
   constructor(opts: RelayOpts) {
+    if (!opts.left || !opts.right) {
+      throw new Error('Relay requires two transports, "left" and "right"');
+    }
     this._relayId = opts.relayId || kvid(10);
     this._left = opts.left;
     this._right = opts.right;
+    this.start(); // maybe an option to not start immediately
   }
 
   /**
@@ -45,15 +49,29 @@ export default class RelayTransports {
     this._startRelay(this._right, this._left);
   }
 
-  stopTransport(): void {
+  stopTransports() {
     this._left.stopTransport();
     this._right.stopTransport();
   }
 
+  stopTransport(): void {
+    this.stopTransports();
+  }
+
   private _startRelay(from: RpcTransport, to: RpcTransport): void {
     from.listen((payload: RequestPayload | ResponsePayload) => {
-      payload.transportMeta.relays = (payload.transportMeta.relays || []).concat([ this._relayId ]);
-      to.sendMessage(payload);
+      if (payload.protocol && _startsWith(payload.protocol, 'WranggleRpc')) { // todo: check against actual Protocol (move that out of internals dir)
+        const relayId = this._relayId;
+        if (!Array.isArray(payload.transportMeta.relays) || !payload.transportMeta.relays.find(r => r === relayId)) {
+          payload.transportMeta.relays = (payload.transportMeta.relays || []).concat([ this._relayId ]);
+          to.sendMessage(payload);
+        }
+      }
     });
   }
+}
+
+
+function _startsWith(val: string, check: string) {
+  return typeof val === 'string' && val.slice(0, check.length) === check;
 }

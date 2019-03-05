@@ -77,6 +77,7 @@ describe('@wranggle/rpc-core/transport-construction', () => {
 class SomeTransport implements RpcTransport {
   constructorOpts: any;
   isSomeTransport = true;
+  endpointSenderId!: string | void;
 
   constructor(opts: any) {
     this.constructorOpts = opts;

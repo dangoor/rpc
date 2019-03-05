@@ -149,6 +149,7 @@ export interface RequestInfo {
   requestedAt: Date;
   completedAt?: Date;
   status: RequestStatus;
+  requestPayload: RequestPayload;
   // include methodName and args?
 }
 
@@ -219,7 +220,8 @@ export interface RpcTransport {
 
   stopTransport(): void;
 
-  updateEndpointInfo?: (data: EndpointInfo) => void;
+  endpointSenderId: string | void;
+
   // todo: reportDisconnect? connection status? decide where to keep features like heartbeat
 }
 
@@ -233,7 +235,7 @@ export interface RequestPayload extends CommonPayload {
 export interface ResponsePayload extends CommonPayload {
   respondingTo: string;
   error?: any;
-  responseArgs?: any[];
+  resolveArgs?: any[];
 }
 
 export interface EndpointInfo {

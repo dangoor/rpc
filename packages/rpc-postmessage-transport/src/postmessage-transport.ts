@@ -54,6 +54,7 @@ export default class PostmessageTransport implements RpcTransport {
   private _opts: PostmessageTransportOpts;
   private _isStopped = false;
   private _windowEventListener?: (payload: RequestPayload | ResponsePayload) => void;
+  endpointSenderId!: string | void;
 
   constructor(opts: PostmessageTransportOpts) {
     const sendingWindow = opts.sendingWindow || opts.targetWindow;
@@ -64,6 +65,8 @@ export default class PostmessageTransport implements RpcTransport {
     if (!receivingWindow || typeof receivingWindow.addEventListener !== 'function') {
       throw new Error('Expecting a browser window or contentWindow. Passed in value is missing "addEventListener"');
     }
+    // @ts-ignore
+    opts.sendToOrigin = opts.sendToOrigin || (global.location && global.location.origin);
     if (!opts.sendToOrigin) {
       throw new Error('sendToOrigin required');
     }
@@ -109,7 +112,7 @@ export default class PostmessageTransport implements RpcTransport {
   }
 
   _removeExistingListener() {
-    this._windowEventListener && this._receivingWindow.removeListener('message', this._windowEventListener);
+    this._windowEventListener && this._receivingWindow && this._receivingWindow.removeEventListener('message', this._windowEventListener);
   }
 
 }

@@ -81,6 +81,21 @@ describe('@wranggle/rpc-websocket-transport.ts', () => {
     const val = await rpc.remoteInterface().hello('Alice');
     expect(val).toBe('Hello Alice');
   });
+
+  test('expose ReconnectingWebSocket factory and use with clientSocket factory', async () => {
+    let customSocket: any;
+
+    const buildReconnectingWebSocket = () => {
+      customSocket = WebSocketTransport.buildReconnectingWebSocket(getWebSocketUrl(), [], { connectionTimeout: 100 });
+      return customSocket;
+    };
+    transport = new WebSocketTransport({ clientSocket: buildReconnectingWebSocket });
+    const ws = await transport.getPromisedWebSocket();
+    expect(ws).toBe(customSocket);
+    const rpc = new WranggleRpc<RemoteServer>({ transport });
+    const val = await rpc.remoteInterface().hello('there');
+    expect(val).toBe('Hello there');
+  });
 });
 
 

@@ -36,7 +36,8 @@ export default class Router {
     const transport = this.transport = buildTransport(transportOpts);
     if (transport) {
       transport.listen(this._onMessage.bind(this));
-      transport.updateEndpointInfo && transport.updateEndpointInfo(this.endpointInfo());
+      transport.endpointSenderId = this.senderId;
+
       // todo: send handshake message?
     }
   }
@@ -131,11 +132,11 @@ export default class Router {
     }
     this._finishedRequestIds.add(requestId);
     this._onValidatedRequest(payload.methodName, payload.userArgs)
-      .then((...result: any[]) => this._handleRsvp(payload, null, result))
+      .then((...resolveArgs: any[]) => this._handleRsvp(payload, null, resolveArgs))
       .catch((reason: any) => this._handleRsvp(payload, reason, []));
   }
 
-  private _handleRsvp(requestPayload: RequestPayload, error: any, responseArgs: any[] | void): void {
+  private _handleRsvp(requestPayload: RequestPayload, error: any, resolveArgs: any[] | void): void {
     if (!requestPayload.rsvp) {
       return; // todo: log/debug option
     }
@@ -145,7 +146,7 @@ export default class Router {
     const { requestId, methodName } = requestPayload;
     const response = Object.assign(this._basePayloadData(), {
       methodName,
-      error, responseArgs,
+      error, resolveArgs: resolveArgs,
       senderId: this.senderId,
       respondingTo: requestId,
     }) as ResponsePayload;
@@ -159,7 +160,7 @@ export default class Router {
       return;
     }
     delete this._pendingRequests[requestId];
-    req.responseReceived(response.error, ...(response.responseArgs || []));
+    req.responseReceived(response.error, ...(response.resolveArgs || []));
   }
 
   private _basePayloadData(): Partial<RequestPayload | ResponsePayload> {

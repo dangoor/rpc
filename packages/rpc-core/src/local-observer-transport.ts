@@ -21,10 +21,10 @@ const DefaultOpts = {
  */
 export default class LocalObserverTransport implements RpcTransport {
   private readonly observer: EventEmitter;
-  private readonly eventName: string;
+  readonly messageEventName: string;
   private _isStopped = false;
   private _payloadHandler?: (payload: RequestPayload | ResponsePayload) => void;
-
+  endpointSenderId!: string | void;
 
   constructor(opts: LocalObserverTransportOpts | EventEmitter) {
     let { observer, messageEventName } = (opts || {}) as any;
@@ -35,7 +35,7 @@ export default class LocalObserverTransport implements RpcTransport {
       throw new Error('InvalidArgument constructing LocalObserverTransport');
     }
     this.observer = observer;
-    this.eventName = messageEventName || DefaultOpts.messageEventName;
+    this.messageEventName = messageEventName || DefaultOpts.messageEventName;
   }
 
   listen(handler: (payload: RequestPayload | ResponsePayload) => void): void {
@@ -45,12 +45,12 @@ export default class LocalObserverTransport implements RpcTransport {
         handler(payload);
       }
     };
-    this.observer.on(this.eventName, this._payloadHandler);
+    this.observer.on(this.messageEventName, this._payloadHandler);
   }
 
   sendMessage(payload: RequestPayload | ResponsePayload): void {
     if (!this._isStopped) {
-      this.observer.emit(this.eventName, payload);
+      this.observer.emit(this.messageEventName, payload);
     }
   }
 
@@ -60,7 +60,7 @@ export default class LocalObserverTransport implements RpcTransport {
   }
 
   _removeExistingListener() {
-    this._payloadHandler && this.observer.removeListener(this.eventName, this._payloadHandler);
+    this._payloadHandler && this.observer.removeListener(this.messageEventName, this._payloadHandler);
   }
 }
 

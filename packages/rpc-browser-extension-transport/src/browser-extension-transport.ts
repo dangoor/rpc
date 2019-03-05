@@ -50,7 +50,7 @@ export default class BrowserExtensionTransport implements RpcTransport {
   private readonly _isContentScript: boolean;
   private readonly _chromeExtensionId!: string;
   private _messageHandler?: ChromeListener;
-
+  endpointSenderId!: string | void;
 
   constructor(opts=<BrowserExtensionTransportOpts>{}) {
     if (!chromeApi.hasChromeExtensionApi()) {
@@ -83,6 +83,7 @@ export default class BrowserExtensionTransport implements RpcTransport {
       if (typeof permitMessage === 'function' && permitMessage(payload, sender) !== true) {
         return;
       }
+      payload.transportMeta = payload.transportMeta || {};
       payload.transportMeta.sender = sender;
       onMessage(payload);
     };

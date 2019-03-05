@@ -51,7 +51,7 @@ export default class ElectronTransport implements RpcTransport {
   private readonly ipcChannelSending: string;
   private readonly ipcChannelReceiving: string;
   private _listenHandler?: (payload: RequestPayload | ResponsePayload) => void;
-  private endpointId = 'unknown';
+  endpointSenderId!: string | void;
 
   constructor(opts: ElectronTransportOpts) {
     if (!opts || !_isIpcSender(opts.ipcSender)) {
@@ -85,10 +85,6 @@ export default class ElectronTransport implements RpcTransport {
       return;
     }
     this.sender.send(this.ipcChannelSending, payload);
-  }
-
-  updateEndpointInfo(info: EndpointInfo) {
-    this.endpointId = info.senderId;
   }
 
   stopTransport(): void {
