@@ -9,7 +9,7 @@ export default {
   output: [
     {
       file: 'dist/wranggle-rpc.js',
-      format: 'cjs', // or 'umd', // or cjs
+      format: 'umd', // or 'umd', // or cjs
       name: 'WranggleRpc',
       exports: 'named',
     }
