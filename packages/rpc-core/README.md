@@ -37,3 +37,19 @@ They don't need to do much:
 
 * `stopTransport(): void;`
 
+
+## Additional / secondary WranggleRpc methods
+
+Secondary/uncommon methods:
+
+* **makeRemoteRequest()** Sends a remote request directly from the `WrangglRpc` instance, rather than making the call on the `remoteInterface`. 
+  ```javascript
+  rpc.makeRemoteRequest('showUserMessage', [ 'Export complete' ], { rsvp: false });
+  ```
+  Type signature is `makeRemoteRequest(methodName: string, userArgs: any[], requestOpts = <RequestOpts>{}): RemotePromise`
+
+* **getSenderId()** returns the *senderId* value the endpoint uses when sending requests
+
+* **getTransport()** returns the *transport* model as set by `useTransport`
+
+* **WranggleRpc.registerTransport(shortcut: string, (transportOpts: any) => RpcTransport)** static method for registering a shortcut and factory for a custom transport. 

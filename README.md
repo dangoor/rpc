@@ -151,22 +151,26 @@ rpc.addRequestHandler('liftSomething', myUsefulFunction);
 
 If the other endpoint calls `remote.liftSomething('quickly, { carefully: true })`, our newly registered `myUsefulFunction` will serve that request, receiving the same arguments sent in the call. The function can return a value or a promise (and so can be an `async function` too).
 
-You can pass in options as a third parameter to *addRequestHandler*. *useCallback* will add a Node.js-style callback when calling the function, using that to resolve the method response (and ignore whateveer the handler function returns directly.) You can also provide a `context` to set "this" when running your function. (But remember that "this" cannot be changed for arrow functions.) The full type signature is: `rpc.addRequestHandler(methodName: string, handlerFn: (...args: any[] => any | Promise<any>), opts?: NamedRequestHandlerOpts) => RemotePromise`. 
+The full type signature is: `rpc.addRequestHandler(methodName: string, handlerFn: (...args: any[] => any | Promise<any>), opts?: NamedRequestHandlerOpts) => RemotePromise`.
 
-A convenience meethod `rpc.addRequestHandlers(functionsByMethodName, optionalContext)` is also available. It loops over the passed in object, registering each function.
+You can pass in options as a third parameter to *addRequestHandler*:
+* **useCallback** If you prefer Node-style callbacks over promises, set *useCallback* to true and your request handler will be passed a callback when run. Instead of using your handler function's returned value or promise to resolve the remote request, the callback will now resolve it. 
+* ** context** sets the "this" binding when running your function. (But remember that "this" cannot be changed for arrow functions.)  
+
+A convenience meethod `rpc.addRequestHandlers(functionsByMethodName, opts)` is also available. It loops over the passed in object, registering each function.
 
 
 ## WranggleRpc options
 
-Set these options when you construct your WranggleRpc endpoint. You can also update them after construction using `rpc.opts(updatedOpts)`.
+You can set some general options when you construct your WranggleRpc endpoint and can also update them after construction using `rpc.opts(updatedOpts)`.
 
 Main options:
 
-* **allRequestOpts**. *RequestOpts object*. Sets default options for all remote requests sent from this endpoint. The defaults are refined/overriden with values set by the `setDefaultRequestOptsForMethod` method or set directly on a `RemotePromise`.
-* **channel**: *string*. Unless the remote endpoint uses the exact same *channel* value, WranggleRpc will ignore its remote requests.
+* **allRequestOpts**. Sets default request options for all remote requests sent from this endpoint. When making the remote calls, the defaults will be refined/overriden with values set by the `setDefaultRequestOptsForMethod` method, which are refined further by options set directly on the call's [RemotePromise](#remote-requests). (*RequestOpts* like timeouts.)
+* **channel**: *string*. Unless the remote endpoint uses the exact same *channel* value, WranggleRpc will ignore its remote requests. Recommended when you use more than one WranggleRpc endpoint in the same window/process, but be careful to use the exact same value.
 * **transport**: The value of this is passed to the WranggleRpc *useTransport* method, setting up the transport which is required before the endpoint can be used. 
 
-Additionally, each transport adds its own shortcut to WranggleRpc options. For example, the "electron" options here are used as a shortcut for setting `transport` to `new ElectronTransport({ ipcSender: ipcRenderer })`:
+Additionally, each transport adds its own shortcut to WranggleRpc options. For example, the "electron" options here are used as a shortcut for setting the endpoint's transport to `new ElectronTransport({ ipcSender: ipcRenderer })`:
 ```javascript
 const rpc = new WranggleRpc({
   channel: 'os-file-dialogs',
@@ -176,21 +180,21 @@ const rpc = new WranggleRpc({
 
 Secondary options:
 
-* **preparseAllIncomingMessages** A function/hook that lets you modify or filter raw RPC request and response payload messages. It runs after the transport receives the message and after WranggleRpc verifies it is a properly formatted message but before it is passed to a request handler. Eg:
+* **preparseAllIncomingMessages** A function/hook that lets you modify or filter raw RPC request and response payload messages. It runs after the transport receives the message and after WranggleRpc verifies it is a properly formatted payload but before it is passed to a request handler. Eg:
   ```javascript
   const rpc = new WranggleRpc({ 
     preparseAllIncomingMessages: (payload) => _checkHmac(payoad.myMeta)
   })
   ```
-  The function can return either a modified payload or `true` to mean use the passed-in payload, anything else means invalidate/ignore.
+  The function can return either a modified payload or `true` to accept the passed-in payload, anything else means invalidate/ignore.
    
 
-* **senderId** A string included on each message payload identifying the sender endpoint. It is generated randomly by default but can be specified here for debug purposes. The two endpoints must use different senderId values.
+* **senderId** A string included on each message payload identifying the sender endpoint. It is generated randomly by default but can be specified here for debug purposes. The two endpoints must use *different* senderId values.
    
 
 ## WranggleRpc methods
 
-The following methods are called on the WranggleRpc instance. (The "`rpc`" variable in most examples and refered to as an *endpoint* in most explanations.)
+The following methods are called on the WranggleRpc instance/endpoint. (The "`rpc`" variable in most examples.)
 
 * **setDefaultRequestOptsForMethod(methodName: string, opts: RequestOptions)** Applies request options to all remote calls for a specific method name.  For example, a backend process might tell a frontend window to display a user message without needing a response, so we can set its *rsvp* option to *false*:
   ```javascript
@@ -204,21 +208,8 @@ Covered in other sections:
 * Request handler methods: see `addRequestHandler` and `addRequestHandlerDelegate` in Request Handler section.
 * `remoteInterface()` See section on Remote Requests 
 * `rpc.opts(opts: RpcOpts)` see section on WranggleRpc Options 
+* [Secondary/uncommon](https://www.npmjs.com/package/@wranggle/rpc-core#additional) method documentation
 
-
-Secondary/uncommon methods:
-
-* **makeRemoteRequest()** Sends a remote request directly from the `WrangglRpc` instance, rather than making the call on the `remoteInterface`. 
-  ```javascript
-  rpc.makeRemoteRequest('showUserMessage', [ 'Export complete' ], { rsvp: false });
-  ```
-  Type signature is `makeRemoteRequest(methodName: string, userArgs: any[], requestOpts = <RequestOpts>{}): RemotePromise`
-
-* **getSenderId()** returns the *senderId* value the endpoint uses when sending requests
-
-* **getTransport()** returns the *transport* model as set by `useTransport`
-
-* **WranggleRpc.registerTransport(shortcut: string, (transportOpts: any) => RpcTransport)** static method for registering a shortcut and factory for a custom transport. 
 
 ## Remote Requests
 
@@ -237,23 +228,27 @@ const rpc = new WranggleRpc<MainProcessMethods>(myOpts);
 const remote = rpc.remoteInterface(); // remote now has MainProcessMethods typings
 ```
 
-When you make remote method calls, it returns a `RemotePromise`. It behaves like a normal Promise, resolving to whatever the remote method returns. eg: 
+When you call a remote method, your call immediately returns a `RemotePromise`. It offers some helpful methods of its own, but more importantly, it behaves like a normal Promise, resolving to whatever the remote method returns. eg: 
 ```javascript
 const remotePromise = remote.recordWinner({ redTeam: 3, blueTeam: 2 });
 remotePromise.then((teamRank) => this.teamRank = teamRank);
 ```
 Since it is a Promise, we could replace "then" with "await" when in an async function: `this.rank = await remotePromise;`
 
+Alternatively, if you pass a callback as the last parameter to your remote call, it will use that.
+
 The _RemotePromise_ also offers some additonal methods:
 
 * _updateTimeout(durationInMs)_ Set or update timeout for a single request. Eg:
   ```javascript
-  const remotePromise = remote.promptUserToSkipStep();
-  remotePromise.updateTimeout(2500);
+  const remotePromise = remote.pullExternalData();
+  if (isUsingSlowServer) {
+    remotePromise.updateTimeout(5000);
+  }
   ```
   If a response isn't received in the specified time in milliseconds, the RemotePromise will be rejected.
   (Note: you can set a default timeout by method name using `rpc.setDefaultRequestOptsForMethod` or a default for all rpc requests in `rpc.opts`. 
-   
+
 * _resolveNow(...results)_ force the RemotePromise to resolve immediately
 * _rejectNow(reason)_ force reject the RemotePromise
 * _info()_ returns info about about the remote request. (timestamps, status)
