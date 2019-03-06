@@ -90,13 +90,7 @@ export interface RpcOpts {
   electron: TransportConstructionOpts,
 
   /**
-   * Shortcut for constructing PostmessageTransport instance.
-   * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
-   */
-  postmessage: TransportConstructionOpts,
-
-  /**
-   * Shortcut for constructing PostmessageTransport instance.
+   * Shortcut for constructing PostMessageTransport instance.
    * todo: figure out how to extend typescript RpcOpts interface with actual constructor opts in that package.
    */
   postMessage: TransportConstructionOpts,

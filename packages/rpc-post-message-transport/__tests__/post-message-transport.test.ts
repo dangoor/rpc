@@ -1,13 +1,13 @@
 // import WranggleRpc from 'rpc-core/src/rpc-core';
 import {RequestPayload, IDict, ResponsePayload} from "rpc-core/src/interfaces";
-import PostmessageTransport from "../src/postmessage-transport";
+import PostMessageTransport from "../src/post-message-transport";
 import { EventEmitter } from 'events';
 
 
 const SomeOrigin = 'https://test.local';
 
 
-describe('@wranggle/rpc-postmessage-transport', () => {
+describe('@wranggle/rpc-post-message-transport', () => {
 
   describe('shouldReceive', () => {
     let lastMessage: any;
@@ -20,7 +20,7 @@ describe('@wranggle/rpc-postmessage-transport', () => {
 
     const buildTransportAndFixturing = (shouldReceiveOpt: any) => {
       mockWindow = new MockWindow();
-      const transport = new PostmessageTransport({
+      const transport = new PostMessageTransport({
         targetWindow: mockWindow,
         sendToOrigin: SomeOrigin,
         shouldReceive: shouldReceiveOpt,
@@ -52,7 +52,7 @@ describe('@wranggle/rpc-postmessage-transport', () => {
 
   test('includes correct targetOrigin when calling postMessage', () => {
     const mockWindow = new MockWindow();
-    const transport = new PostmessageTransport({
+    const transport = new PostMessageTransport({
       targetWindow: mockWindow,
       sendToOrigin: 'https://iframes.test.local',
       shouldReceive: SomeOrigin,

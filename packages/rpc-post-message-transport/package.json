@@ -1,5 +1,5 @@
 {
-  "name": "@wranggle/rpc-postmessage-transport",
+  "name": "@wranggle/rpc-post-message-transport",
   "version": "0.1.0",
   "description": "WranggleRpc transport using window.postMessage for windows and iframes",
   "scripts": {
@@ -7,7 +7,7 @@
     "test": "jest"
   },
   "author": "Jeff Ferber <jeff@wranggle.com>",
-  "main": "out/postmessage-transport.js",
+  "main": "out/post-message-transport.js",
   "files": [
     "out"
   ],

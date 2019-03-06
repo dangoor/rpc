@@ -5,7 +5,7 @@ import {registerTransport} from "rpc-core/src/transport-shortcut-registration";
 
 type WindowRef = any;
 
-export interface PostmessageTransportOpts {
+export interface PostMessageTransportOpts {
   /**
    * Target window to use for both sending and receiving messages. If they are different, use the `sendingWindow` and
    * `receivingWindow` options.
@@ -48,15 +48,15 @@ export interface PostmessageTransportOpts {
 }
 
 
-export default class PostmessageTransport implements RpcTransport {
+export default class PostMessageTransport implements RpcTransport {
   private _sendingWindow: WindowRef;
   private _receivingWindow: WindowRef;
-  private _opts: PostmessageTransportOpts;
+  private _opts: PostMessageTransportOpts;
   private _isStopped = false;
   private _windowEventListener?: (payload: RequestPayload | ResponsePayload) => void;
   endpointSenderId!: string | void;
 
-  constructor(opts: PostmessageTransportOpts) {
+  constructor(opts: PostMessageTransportOpts) {
     const sendingWindow = opts.sendingWindow || opts.targetWindow;
     if (!sendingWindow || typeof sendingWindow.postMessage !== 'function') {
       throw new Error('Expecting a browser window or contentWindow. Passed in value is missing "postMessage"');
@@ -117,4 +117,4 @@ export default class PostmessageTransport implements RpcTransport {
 
 }
 
-registerTransport('postMessage', (opts: PostmessageTransportOpts) => new PostmessageTransport(opts));
+registerTransport('postMessage', (opts: PostMessageTransportOpts) => new PostMessageTransport(opts));

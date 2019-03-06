@@ -1,7 +1,7 @@
 import WranggleRpc from 'rpc-core/src/rpc-core';
 import LocalObserverTransport, {LocalObserverTransportOpts} from 'rpc-core/src/local-observer-transport';
 import BrowserExtensionTransport from 'rpc-browser-extension-transport/src/browser-extension-transport';
-import PostmessageTransport from 'rpc-postmessage-transport/src/postmessage-transport';
+import PostMessageTransport from 'rpc-post-message-transport/src/post-message-transport';
 import ElectronTransport from 'rpc-electron-transport/src/electron-transport';
 import WebSocketTransport from 'rpc-websocket-transport/src/websocket-transport';
 import Relay from 'rpc-relay/src/relay';
@@ -13,7 +13,7 @@ export {
   BrowserExtensionTransport,
   ElectronTransport,
   LocalObserverTransport,
-  PostmessageTransport,
+  PostMessageTransport,
   Relay,
   WebSocketTransport,
   WranggleRpc,
