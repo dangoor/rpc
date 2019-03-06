@@ -23,6 +23,7 @@ describe('@wranggle/rpc-relay', () => {
       messageEventName: 'rightEvent'
     });
     rightRpc = new WranggleRpc<any>({ transport: rightTransport, senderId: 'fakeRight' });
+    rightRpc.addRequestHandler('sing', () => 'do re me');
 
     middleLeftTransport = new LocalObserverTransport({
       observer: leftObserver,
@@ -43,9 +44,25 @@ describe('@wranggle/rpc-relay', () => {
 
   test('rpc through relay', async () => {
     buildRpc();
-    rightRpc.addRequestHandler('sing', () => 'do re me');
     const result = await leftRpc.remoteInterface().sing();
     expect(result).toBe('do re me');
+  });
+
+  test('shouldRelay filter', async () => {
+    buildRpc();
+    relayTransport.opts({ shouldRelay: (payload: any) => true });
+    const remotePromise_1 = leftRpc.remoteInterface().sing();
+    remotePromise_1.updateTimeout(20);
+    const result = await remotePromise_1;
+    expect(result).toBe('do re me');
+    relayTransport.opts({ shouldRelay: (payload: any) => false });
+    const remotePromise_2 = leftRpc.remoteInterface().sing();
+    remotePromise_2.updateTimeout(20);
+    let fails;
+    await remotePromise_2.catch(err => {
+      fails = err;
+    });
+    expect(!!fails).toBe(true);
   });
 
   test('stopTransport stops left and right sides', () => {

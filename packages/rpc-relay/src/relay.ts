@@ -21,22 +21,40 @@ export interface RelayOpts {
    */
   relayId?: string;
 
+  /**
+   * A function for filtering out messages. When present, it must return `true` for the message to be relayed.
+   */
+  shouldRelay?: (payload: RequestPayload | ResponsePayload) => boolean;
 }
 
 
 export default class Relay {
-  private readonly _relayId: string;
+  private _relayId!: string;
   private readonly _left: RpcTransport;
   private readonly _right: RpcTransport;
+  private _shouldRelay?: ((payload: RequestPayload | ResponsePayload) => boolean) | void;
+
 
   constructor(opts: RelayOpts) {
     if (!opts.left || !opts.right) {
       throw new Error('Relay requires two transports, "left" and "right"');
     }
-    this._relayId = opts.relayId || kvid(10);
+    opts.relayId = opts.relayId || kvid(10);
+
     this._left = opts.left;
     this._right = opts.right;
+    this.opts(opts);
+    this._shouldRelay = opts.shouldRelay;
     this.start(); // maybe an option to not start immediately
+  }
+
+  opts(opts: Partial<RelayOpts>) {
+    if (opts.shouldRelay) {
+      this._shouldRelay = opts.shouldRelay;
+    }
+    if (opts.relayId) {
+      this._relayId = opts.relayId
+    }
   }
 
   /**
@@ -64,7 +82,9 @@ export default class Relay {
         const relayId = this._relayId;
         if (!Array.isArray(payload.transportMeta.relays) || !payload.transportMeta.relays.find(r => r === relayId)) {
           payload.transportMeta.relays = (payload.transportMeta.relays || []).concat([ this._relayId ]);
-          to.sendMessage(payload);
+          if (typeof this._shouldRelay !== 'function' || this._shouldRelay.call(null, payload) === true) {
+            to.sendMessage(payload);
+          }
         }
       }
     });
