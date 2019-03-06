@@ -141,7 +141,7 @@ Options for `addRequestHandlerDelegate`:
 * **ignoreInherited**: When true, inherited methods are not run. Only methods on the current class can run, not its *super*. (Only methods on the immediate object and its prototype will run.) Default is *true*.
 * **ignoreWithUnderscorePrefix**: when true, does not run method if it starts with an underscore "_". Default is *true*.
 
-You can delegate multiple models if desired. WranggleRpc will run the first method it finds that passes all filters. 
+You can delegate multiple models if desired. WranggleRpc will run the first registered method it finds that passes all filters. 
 
 
 #### Registering specific functions
@@ -151,7 +151,7 @@ You can add a specific function with `rpc.addRequestHandler()`. For example:
 rpc.addRequestHandler('liftSomething', myUsefulFunction);
 ```
 
-If the other endpoint calls `remote.liftSomething('quickly, { carefully: true })`, our newly registerd `myUsefulFunction` will serve that request, receiving the same arguments sent in the call. The function can return a value or a promise (and so can be an `async function` too).
+If the other endpoint calls `remote.liftSomething('quickly, { carefully: true })`, our newly registered `myUsefulFunction` will serve that request, receiving the same arguments sent in the call. The function can return a value or a promise (and so can be an `async function` too).
 
 You can pass in options as a third parameter to *addRequestHandler*. *useCallback* will add a Node.js-style callback when calling the function, using that to resolve the method response (and ignore whateveer the handler function returns directly.) You can also provide a `context` to set "this" when running your function. (But remember that "this" cannot be changed for arrow functions.) The full type signature is: `rpc.addRequestHandler(methodName: string, handlerFn: (...args: any[] => any | Promise<any>), opts?: NamedRequestHandlerOpts) => RemotePromise`. 
 
@@ -242,7 +242,7 @@ const remote = rpc.remoteInterface(); // remote now has MainProcessMethods typin
 When you make remote method calls, it returns a `RemotePromise`. It behaves like a normal Promise, resolving to whatever the remote method returns. eg: 
 ```javascript
 const remotePromise = remote.recordWinner({ redTeam: 3, blueTeam: 2 });
-remotePromise.then((teamRank) => this.teamRank = teamRank));
+remotePromise.then((teamRank) => this.teamRank = teamRank);
 ```
 Since it is a Promise, we could replace "then" with "await" when in an async function: `this.rank = await remotePromise;`
 
