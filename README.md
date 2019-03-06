@@ -49,9 +49,7 @@ We use `addRequestHandler` to register a specific function, rather than an entir
   
 ## Transports
 
-WranggleRpc is not a metal-on-the-wire style framework like Thrift/AMP, but rather a candy-coating for the message-passing you already use. 
-
-You create an instance of WranggleRpc in each window/process, giving each endpoint a transport that handles the message-passing. The transport's job is to send and receive arbitrary message data between your two endpoints.
+WranggleRpc is a candy-coating for the message-passing you're already using. In each window/process, you create a WranggleRpc endpoint, giving it a transport that handles its message-passing. The transport's job is to send and receive arbitrary message data between your two endpoints.
      
 The main _@wranggle/rpc_ package ships with the following transports:
 
@@ -66,7 +64,7 @@ Additional, a [Relay](https://github.com/wranggle/rpc/tree/master/packages/rpc-r
 Each transport has its own configuration options. Take a look at the README for each of the ones you use.
 
 
-## Usage
+## Setup
 
 1. Add the package [@wranggle/rpc](https://www.npmjs.com/package/@wranggle/rpc) to your project:
     ```bash
