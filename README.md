@@ -6,7 +6,9 @@ WranggleRpc is a JavaScript/TypeScript library for calling code that lives and r
 * **Electron apps** with their mix of Node and browser window processes 
 * **Web pages** using iframes, WebSocket servers, or web/service workers
  
-Without WranggleRpc, things can easily get tangled and ugly: one side will send a message, the other side listens for it, acts on it, and sends back a response, which the original side must listen for, and so on. WranggleRpc makes it nice.   
+Without WranggleRpc, things can easily get tangled and ugly: one side will send a message, the other side listens for it, acts on it, and sends back a response, which the original side must listen for, and so on. 
+
+WranggleRpc makes it nice.   
 
 
 ## Quick Example
@@ -14,7 +16,7 @@ Without WranggleRpc, things can easily get tangled and ugly: one side will send 
 In a Chrome extension, page-injected code might use WranggleRpc to run methods that live in the main extension's window with something like:     
  
 ```javascript
-import WranggleRpc from '@wranggle/rpc';
+import { WranggleRpc } from '@wranggle/rpc';
 const remote = new WranggleRpc('chrome').remoteInterface();
 
 async function screenshotIfDesired() {
@@ -29,10 +31,10 @@ The above `getUserPrefs` and `takeScreenshot` methods run in a different window,
 
 If using TypeScript, you'll also enjoy autocomplete and type checking on your remote calls when you specify a remote interface on WranggleRpc. eg: `new WranggleRpc<MyRemoteInterface>(myOpts)`
 
-Of course, the remote endpoint needs to declare the method call requests it will handle but we can let an existing model handle it. Let's take a look at the other endpoint, the code in the main browser extension: 
+Of course, the remote endpoint needs to declare the methods it will handle but we can simply provide the methods on an existing model. Let's take a look at the other endpoint, the code in the main browser extension: 
  
 ```javascript
-import WranggleRpc from '@wranggle/rpc';
+import { WranggleRpc } from '@wranggle/rpc';
 const rpc = new WranggleRpc('chrome'); // note: we'll want to set other options here (covered below)
 
 rpc.addRequestHandlerDelegate(userPrefs); 
@@ -53,13 +55,13 @@ You create an instance of WranggleRpc in each window/process, giving each endpoi
      
 The main _@wranggle/rpc_ package ships with the following transports:
 
-* [BrowserExtensionTransport](/blob/master/packages/rpc-browser-extension-transport/): messaging over [chrome.runtime](https://developer.chrome.com/apps/runtime) or [chrome.tabs](https://developer.chrome.com/extensions/tabs) (for Firefox, Chromium, Edge browser extensions) 
-* [ElectronTransport](/blob/master/packages/rpc-electron-transport/): messaging over the [Electron.js](https://electronjs.org/docs/api) ipc system.
-* _LocalObserverTransport_: messaging over any shared, standard EventEmitter. (When both WranggleRpc endpoints are in the same window/process.)
-* [PostMessageTransport](/blob/master/packages/rpc-postmessage-transport/): messaging over window.postMessage. (When communicating across browser windows/iframes.)
-* [WebSocketTransport](/blob/master/packages/rpc-websocket-transport/): messaging over [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket). (Communicating between WebSocket client and server) 
+* [BrowserExtensionTransport](/wranggle/rpc/tree/master/packages/rpc-browser-extension-transport/): messaging over [chrome.runtime](https://developer.chrome.com/apps/runtime) or [chrome.tabs](https://developer.chrome.com/extensions/tabs) (for Firefox, Chromium, Edge browser extensions) 
+* [ElectronTransport](/wranggle/rpc/tree/master/packages/rpc-electron-transport/): messaging over the [Electron.js](https://electronjs.org/docs/api) ipc system.
+* [LocalObserverTransport](/wranggle/rpc/tree/master/packages/rpc-core/#LocalObserverTransport): messaging over any shared, standard EventEmitter. (When both WranggleRpc endpoints are in the same window/process.)
+* [PostMessageTransport](/wranggle/rpc/tree/master/packages/rpc-post-message-transport/): messaging over window.postMessage. (When communicating across browser windows/iframes.)
+* [WebSocketTransport](/wranggle/rpc/tree/master/packages/rpc-websocket-transport/): messaging over [WebSocket](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket). (Communicating between WebSocket client and server) 
 
-Additional, a [Relay](/blob/master/packages/rpc-relay) can be used as a bridge between any two transports, when a message needs to hop across an intermediate window/process. You can also create your own [custom transport](/blob/master/docs-more/custom-transport). 
+Additional, a [Relay](/wranggle/rpc/tree/master/packages/rpc-relay) can be used as a bridge between any two transports, when a message needs to hop across an intermediate window/process. You can also create your own [custom transport](/wranggle/rpc/tree/master/packages/rpc-core/#Custom-Transport). 
 
 Each transport has its own configuration options. Take a look at the README for each of the ones you use.
 
@@ -78,7 +80,7 @@ Each transport has its own configuration options. Take a look at the README for 
 
 2. In each of your two JavaScript window/process endpoints, require or import  WranggleRpc:
     ```javascript
-    import WranggleRpc from '@wranggle/rpc'; 
+    import { WranggleRpc } from '@wranggle/rpc'; 
     // or:
     const { WranggleRpc } = require('@wranggle/rpc');  
     ```
@@ -110,7 +112,7 @@ You can register entire models, sharing their methods with the other endpoint, o
 
 #### Delegated approach: share methods of a model
 
-In this approach, you delegate the methods of an entire model using `rpc.addRequestHandlerDelegate(delegate: object, opts?: DelegateOpts)`. 
+In this approach, you delegate the methods of an entire model using `rpc.addRequestHandlerDelegate(delegate: object, opts?: DelegatedRequestHandlerOpts)`. 
 
 For example:
 
@@ -134,7 +136,7 @@ Options for `addRequestHandlerDelegate`:
     shouldRun: (methodName) => methodName === 'create' || methodName === 'update'
   });      
   ```
-  The type signature of the filter function is: `(methodName: string, delegatedModel: object, ...userArgs: any[]) => boolean`
+  The type signature of this filter function is: `(methodName: string, delegatedModel: object, ...userArgs: any[]) => boolean`
 
 * **ignoreInherited**: When true, inherited methods are not run. Only methods on the current class can run, not its *super*. (Only methods on the immediate object and its prototype will run.) Default is *true*.
 * **ignoreWithUnderscorePrefix**: when true, does not run method if it starts with an underscore "_". Default is *true*.
@@ -144,14 +146,14 @@ You can delegate multiple models if desired. WranggleRpc will run the first meth
 
 #### Registering specific functions
 
-You can add a specific function with `rpc.addRequestHandler`. For example:
+You can add a specific function with `rpc.addRequestHandler()`. For example:
 ```javascript
 rpc.addRequestHandler('liftSomething', myUsefulFunction);
 ```
 
 If the other endpoint calls `remote.liftSomething('quickly, { carefully: true })`, our newly registerd `myUsefulFunction` will serve that request, receiving the same arguments sent in the call. The function can return a value or a promise (and so can be an `async function` too).
 
-You can optionally provide a `context` (to set "this" when running your function) as a third argument. 
+You can pass in options as a third parameter to *addRequestHandler*. *useCallback* will add a Node.js-style callback when calling the function, using that to resolve the method response (and ignore whateveer the handler function returns directly.) You can also provide a `context` to set "this" when running your function. (But remember that "this" cannot be changed for arrow functions.) The full type signature is: `rpc.addRequestHandler(methodName: string, handlerFn: (...args: any[] => any | Promise<any>), opts?: NamedRequestHandlerOpts) => RemotePromise`. 
 
 A convenience meethod `rpc.addRequestHandlers(functionsByMethodName, optionalContext)` is also available. It loops over the passed in object, registering each function.
 
@@ -173,6 +175,7 @@ const rpc = new WranggleRpc({
   electron: { ipcSender: ipcRenderer } // explained in ElectronTransport's own README
 })
 ```
+
 Secondary options:
 
 * **preparseAllIncomingMessages** A function/hook that lets you modify or filter raw RPC request and response payload messages. It runs after the transport receives the message and after WranggleRpc verifies it is a properly formatted message but before it is passed to a request handler. Eg:
@@ -231,7 +234,7 @@ remote.withSugar(3, 'lumps');
 If using TypeScript, import and apply an interface during construction, where `new WranggleRpc<T>(opts)` gives you `remoteInterface(): T`. For example:
 ```javascript
 import { MainProcessMethods } from 'src/main/api/interfaces.ts';
-import WranggleRpc from '@wranggle/rpc';
+import { WranggleRpc } from '@wranggle/rpc';
 const rpc = new WranggleRpc<MainProcessMethods>(myOpts);
 const remote = rpc.remoteInterface(); // remote now has MainProcessMethods typings
 ```

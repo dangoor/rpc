@@ -3,7 +3,7 @@
 A WranggleRpc transport, sending and receiving messages over [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket). 
 
 
-## Usage 
+## Setup 
 
 If you are using the full [@wranggle/rpc](https://www.npmjs.com/package/@wranggle/rpc) package, the WebSocketTransport is already
  bundled within. You can import/require it with: 
@@ -29,11 +29,11 @@ import WranggleRpc from '@wranggle/rpc-core';
 import WebSocketTransport from '@wranggle/rpc-websocket-transport';
 ```
 
-#### Shortcut
-When creating your WranggleRpc endpoint, you can use the `websocket` shorcut to also construct this transport. Eg:
+### Construction
 
-```javascript
-```
+When creating your WranggleRpc endpoint, you can use the `websocket` shortcut to also construct this transport,
+eg `new WranggleRpc({ websocket: myWebsocketOpts })`. See endpoint-specific instructions below. 
+      
 
 ## Client-side endpoint
 
@@ -58,6 +58,15 @@ This option creates a new WebSocket connection using the [ReconnectingWebSocket]
 This option lets you supply a socket rather have the transport create one for you. You can provide a browser-standard socket, your own ReconnectingWebSocket instance, or something else that is API compatible to either.
 The option accepts a socket, a Promise of one, or a function returning one.
 
+#### Client-side static method: `buildReconnectingWebSocket`
+
+You can create your own ReconnectingWebSocket instance with this static factory. 
+`WebSocketTransport.buildReconnectingWebSocket(...args: any[]) => ReconnectingWebSocket`. It passes its arguments to the ReconnectingWebSocket constructor. Eg:
+```javascript
+const transport = new WebSocketTransport({ 
+  clientSocket: WebSocketTransport.buildReconnectingWebSocket(someUrl, [], { maxRetries: 6 }) 
+});
+```
 
 ## Server-side endpoint
 
@@ -76,4 +85,13 @@ wss.on('connection', (socket, request) => {
 The `wss` in the above example is for a library like [ws](https://www.npmjs.com/package/ws) but other WebSocket servers should offer something similar.
 
 The `serverSocket` attrib is required. 
+
+
+## Additional methods
+
+When it comes to WebSockets, you'll often want to hook into its events. Should you need to, this transport provides access to the event handlers and to the underlying socket. 
+
+* **addEventListener** and **removeEventListener**. Forwards to the underlying socket. Params: `(eventType: 'open' | 'close' | 'message' | 'error', listener: EventListener)`
+
+* **`getPromisedWebSocket() => Promise<WebSocket>`** returns the underlying socket (once resolved should you have deferred its construction)
 
